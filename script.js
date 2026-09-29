@@ -1,10 +1,18 @@
 const video = document.getElementById("video");
 const overlay = document.getElementById("overlay-elements");
 Promise.all([
-        faceapi.nets.tinyFaceDetector.loadFromUri("./models")
+    faceapi.nets.tinyFaceDetector.loadFromUri(
+        "./models"
+    )
 ]).then(() => {
     console.log("Modelos cargados correctamente.");
-    video.play().catch(err => console.log("Reproducción automática bloqueada, requiere interacción:", err));
+
+    video.play().catch(err =>
+        console.log(
+            "Reproducción automática bloqueada, requiere interacción:",
+            err
+        )
+    );
 });
 let imagesAdded = false;
 let grullasImage = null;
