@@ -3,51 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Detección de Rostros con Video</title>
+
+    <title>El juego de los rostros invisibles</title>
+
+    <!-- FACE-API.JS -->
+    <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+
+    <!-- TU JAVASCRIPT -->
+    <script src="./script.js" defer></script>
+
     <style>
-        body {
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            background-color: #f0f0f0;
-        }
-        .container {
+        #overlay-elements {
             position: relative;
         }
-        video {
+
+        #video {
             display: block;
-            width: 720px;
-            height: 560px;
         }
-        .overlay-elements {
+
+        #overlay-elements canvas {
             position: absolute;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
             pointer-events: none;
         }
-        .overlay-elements canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-        }
-        .overlay-elements img {
-            position: absolute;
-            top: 0;
-            left: 0;
+
+        #overlay-elements img {
+            pointer-events: none;
         }
     </style>
-    <script defer src="face-api.js"></script>
-    <script src="script.js"></script>
 </head>
+
 <body>
-    <div class="container">
-        <video id="video" width="720" height="560" autoplay muted loop controls src="video.mp4"></video>
-        <div id="overlay-elements" class="overlay-elements"></div>
+
+    <div id="overlay-elements">
+        <video
+            id="video"
+            autoplay
+            muted
+            playsinline
+        ></video>
     </div>
+
 </body>
 </html>
