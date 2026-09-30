@@ -9,13 +9,11 @@
 
     <title>El juego de los rostros invisibles</title>
 
-
     <style>
 
         * {
             box-sizing: border-box;
         }
-
 
         html,
         body {
@@ -27,7 +25,6 @@
             min-height: 100%;
 
         }
-
 
         body {
 
@@ -45,7 +42,6 @@
 
         }
 
-
         .container {
 
             position: relative;
@@ -57,7 +53,6 @@
             flex-shrink: 0;
 
         }
-
 
         #video {
 
@@ -77,7 +72,6 @@
 
         }
 
-
         #overlay-elements {
 
             position: absolute;
@@ -94,7 +88,6 @@
 
         }
 
-
         #overlay-elements canvas {
 
             position: absolute;
@@ -109,7 +102,6 @@
 
         }
 
-
         #overlay-elements img {
 
             position: absolute;
@@ -122,35 +114,14 @@
 
     </style>
 
-
-    <!-- =====================================================
-         FACE-API.JS
-         ===================================================== -->
-
-    <script
-        defer
-        src="./face-api.js">
-    </script>
-
-
-    <!-- =====================================================
-         NUESTRO JAVASCRIPT
-         ===================================================== -->
-
-    <script
-        defer
-        src="./script.js">
-    </script>
-
+    <script defer src="./face-api.js"></script>
+    <script defer src="./script.js"></script>
 
 </head>
 
-
 <body>
 
-
     <div class="container">
-
 
         <video
             id="video"
@@ -162,14 +133,9 @@
             src="./video.mp4">
         </video>
 
-
-        <div
-            id="overlay-elements">
-        </div>
-
+        <div id="overlay-elements"></div>
 
     </div>
-
 
 </body>
 
