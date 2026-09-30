@@ -12,18 +12,36 @@
 
     <style>
 
+        * {
+            box-sizing: border-box;
+        }
+
+
+        html,
         body {
 
             margin: 0;
             padding: 0;
 
+            width: 100%;
+            min-height: 100%;
+
+        }
+
+
+        body {
+
             display: flex;
+
             justify-content: center;
+
             align-items: center;
 
             min-height: 100vh;
 
-            background-color: #f0f0f0;
+            background: #f0f0f0;
+
+            overflow: hidden;
 
         }
 
@@ -33,7 +51,10 @@
             position: relative;
 
             width: 768px;
+
             height: 576px;
+
+            flex-shrink: 0;
 
         }
 
@@ -50,10 +71,31 @@
 
             display: block;
 
+            object-fit: fill;
+
+            z-index: 1;
+
         }
 
 
         #overlay-elements {
+
+            position: absolute;
+
+            top: 0;
+            left: 0;
+
+            width: 768px;
+            height: 576px;
+
+            z-index: 5;
+
+            pointer-events: none;
+
+        }
+
+
+        #overlay-elements canvas {
 
             position: absolute;
 
@@ -68,37 +110,38 @@
         }
 
 
-        #overlay-elements canvas {
-
-            position: absolute;
-
-            top: 0;
-            left: 0;
-
-        }
-
-
         #overlay-elements img {
 
             position: absolute;
 
             pointer-events: none;
 
-            object-fit: fill;
+            user-select: none;
 
         }
 
     </style>
 
 
-    <!-- face-api.js PRIMERO -->
+    <!-- =====================================================
+         FACE-API.JS
+         ===================================================== -->
 
-    <script defer src="./face-api.js"></script>
+    <script
+        defer
+        src="./face-api.js">
+    </script>
 
 
-    <!-- script.js DESPUÉS -->
+    <!-- =====================================================
+         NUESTRO JAVASCRIPT
+         ===================================================== -->
 
-    <script defer src="./script.js"></script>
+    <script
+        defer
+        src="./script.js">
+    </script>
+
 
 </head>
 
