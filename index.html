@@ -2,33 +2,125 @@
 <html lang="es">
 
 <head>
+
 <meta charset="UTF-8">
-<title>Juego de los rostros invisibles</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>El juego de los rostros invisibles</title>
+
+
+<style>
+
+body {
+
+    margin:0;
+    padding:0;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    min-height:100vh;
+
+    background:#f0f0f0;
+
+}
+
+
+.container {
+
+    position:relative;
+
+    width:720px;
+    height:560px;
+
+}
+
+
+video {
+
+    position:absolute;
+
+    top:0;
+    left:0;
+
+    width:720px;
+    height:560px;
+
+}
+
+
+.overlay-elements {
+
+    position:absolute;
+
+    top:0;
+    left:0;
+
+    width:720px;
+    height:560px;
+
+    pointer-events:none;
+
+}
+
+
+canvas {
+
+    position:absolute;
+
+    top:0;
+    left:0;
+
+}
+
+
+.overlay-elements img {
+
+    position:absolute;
+
+    pointer-events:none;
+
+}
+
+
+</style>
+
+
+<!-- Primero face-api -->
+<script defer src="./face-api.js"></script>
+
+<!-- Después nuestro código -->
+<script defer src="./script.js"></script>
+
 
 </head>
+
 
 <body>
 
 
-<div id="contenedor">
+<div class="container">
 
-    <video 
-        id="video"
-        autoplay
-        muted
-        playsinline>
-    </video>
 
-    <canvas id="canvas"></canvas>
+<video
+id="video"
+width="720"
+height="560"
+autoplay
+muted
+playsinline
+src="./video.mp4">
+</video>
 
+
+<div 
+id="overlay-elements"
+class="overlay-elements">
 </div>
 
 
-<!-- PRIMERO face-api -->
-<script src="./face-api.js"></script>
-
-<!-- DESPUÉS tu código -->
-<script src="./script.js"></script>
+</div>
 
 
 </body>
