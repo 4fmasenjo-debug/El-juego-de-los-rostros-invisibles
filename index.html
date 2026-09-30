@@ -3,96 +3,102 @@
 
 <head>
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
 
-<title>El juego de los rostros invisibles</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-
-<style>
-
-body {
-
-    margin:0;
-    padding:0;
-
-    display:flex;
-    justify-content:center;
-    align-items:center;
-
-    min-height:100vh;
-
-    background:#f0f0f0;
-
-}
+    <title>El juego de los rostros invisibles</title>
 
 
-.container {
+    <style>
 
-    position:relative;
+        body {
 
-    width:720px;
-    height:560px;
+            margin: 0;
+            padding: 0;
 
-}
+            display: flex;
+            justify-content: center;
+            align-items: center;
 
+            min-height: 100vh;
 
-video {
+            background-color: #f0f0f0;
 
-    position:absolute;
-
-    top:0;
-    left:0;
-
-    width:720px;
-    height:560px;
-
-}
+        }
 
 
-.overlay-elements {
+        .container {
 
-    position:absolute;
+            position: relative;
 
-    top:0;
-    left:0;
+            width: 768px;
+            height: 576px;
 
-    width:720px;
-    height:560px;
-
-    pointer-events:none;
-
-}
+        }
 
 
-canvas {
+        #video {
 
-    position:absolute;
+            position: absolute;
 
-    top:0;
-    left:0;
+            top: 0;
+            left: 0;
 
-}
+            width: 768px;
+            height: 576px;
 
+            display: block;
 
-.overlay-elements img {
-
-    position:absolute;
-
-    pointer-events:none;
-
-}
+        }
 
 
-</style>
+        #overlay-elements {
+
+            position: absolute;
+
+            top: 0;
+            left: 0;
+
+            width: 768px;
+            height: 576px;
+
+            pointer-events: none;
+
+        }
 
 
-<!-- Primero face-api -->
-<script defer src="./face-api.js"></script>
+        #overlay-elements canvas {
 
-<!-- Después nuestro código -->
-<script defer src="./script.js"></script>
+            position: absolute;
 
+            top: 0;
+            left: 0;
+
+        }
+
+
+        #overlay-elements img {
+
+            position: absolute;
+
+            pointer-events: none;
+
+            object-fit: fill;
+
+        }
+
+    </style>
+
+
+    <!-- face-api.js PRIMERO -->
+
+    <script defer src="./face-api.js"></script>
+
+
+    <!-- script.js DESPUÉS -->
+
+    <script defer src="./script.js"></script>
 
 </head>
 
@@ -100,27 +106,26 @@ canvas {
 <body>
 
 
-<div class="container">
+    <div class="container">
 
 
-<video
-id="video"
-width="720"
-height="560"
-autoplay
-muted
-playsinline
-src="./video.mp4">
-</video>
+        <video
+            id="video"
+            width="768"
+            height="576"
+            autoplay
+            muted
+            playsinline
+            src="./video.mp4">
+        </video>
 
 
-<div 
-id="overlay-elements"
-class="overlay-elements">
-</div>
+        <div
+            id="overlay-elements">
+        </div>
 
 
-</div>
+    </div>
 
 
 </body>
