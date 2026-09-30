@@ -1,4 +1,3 @@
-
 console.log("INICIANDO EL JUEGO DE LOS ROSTROS INVISIBLES");
 
 const video = document.getElementById("video");
@@ -9,15 +8,20 @@ let libelulaImage = null;
 let mariposasImage = null;
 let pezImage = null;
 
-let modeloCargado = false;
 let deteccionActiva = false;
 let procesando = false;
 
-// Canvas pequeño utilizado SOLO para detectar las caras
+
+// ============================================================
+// CANVAS PEQUEÑO PARA EL ANÁLISIS
+// ============================================================
+
 const canvasDeteccion = document.createElement("canvas");
-const ctxDeteccion = canvasDeteccion.getContext("2d", {
-    willReadFrequently: true
-});
+
+canvasDeteccion.width = 320;
+canvasDeteccion.height = 240;
+
+const ctx = canvasDeteccion.getContext("2d");
 
 
 // ============================================================
@@ -25,7 +29,9 @@ const ctxDeteccion = canvasDeteccion.getContext("2d", {
 // ============================================================
 
 if (typeof faceapi === "undefined") {
+
     throw new Error("faceapi no está disponible.");
+
 }
 
 console.log("face-api.js cargado.");
@@ -49,11 +55,18 @@ function crearImagen(ruta) {
     overlay.appendChild(img);
 
     img.onload = function () {
+
         console.log("Imagen cargada:", ruta);
+
     };
 
     img.onerror = function () {
-        console.error("ERROR cargando imagen:", ruta);
+
+        console.error(
+            "ERROR cargando imagen:",
+            ruta
+        );
+
     };
 
     return img;
@@ -63,11 +76,15 @@ function crearImagen(ruta) {
 function cargarImagenes() {
 
     grullasImage = crearImagen("./grullas.png");
+
     libelulaImage = crearImagen("./libelula.png");
+
     mariposasImage = crearImagen("./mariposas.png");
+
     pezImage = crearImagen("./pez.png");
 
     console.log("Imágenes cargadas.");
+
 }
 
 
@@ -79,13 +96,17 @@ async function cargarModelo() {
 
     try {
 
-        console.log("Cargando Tiny Face Detector...");
+        console.log(
+            "Cargando Tiny Face Detector..."
+        );
 
-        await faceapi.nets.tinyFaceDetector.loadFromUri("./models");
+        await faceapi.nets.tinyFaceDetector.loadFromUri(
+            "./models"
+        );
 
-        modeloCargado = true;
-
-        console.log("Modelo cargado correctamente.");
+        console.log(
+            "Modelo cargado correctamente."
+        );
 
         cargarImagenes();
 
@@ -93,7 +114,10 @@ async function cargarModelo() {
 
     } catch (error) {
 
-        console.error("ERROR CARGANDO MODELO:");
+        console.error(
+            "ERROR CARGANDO MODELO:"
+        );
+
         console.error(error);
 
     }
@@ -107,86 +131,83 @@ async function cargarModelo() {
 
 function prepararVideo() {
 
-    console.log("Preparando vídeo.");
+    console.log(
+        "Preparando vídeo."
+    );
 
     console.log(
         "URL del vídeo:",
         video.currentSrc
     );
 
-    console.log(
-        "ReadyState:",
-        video.readyState
+    video.addEventListener(
+        "loadedmetadata",
+        function () {
+
+            console.log(
+                "METADATA DEL VÍDEO CARGADA:",
+                video.videoWidth,
+                "x",
+                video.videoHeight
+            );
+
+        }
     );
 
 
-    video.addEventListener("loadedmetadata", function () {
+    video.addEventListener(
+        "playing",
+        function () {
 
-        console.log(
-            "METADATA DEL VÍDEO CARGADA:",
-            video.videoWidth,
-            "x",
-            video.videoHeight
-        );
+            console.log(
+                "VÍDEO REPRODUCIÉNDOSE."
+            );
 
-        // Canvas de análisis pequeño
-        canvasDeteccion.width = 320;
-        canvasDeteccion.height = 240;
+            if (!deteccionActiva) {
 
-    });
+                deteccionActiva = true;
 
+                iniciarDeteccion();
 
-    video.addEventListener("loadeddata", function () {
-
-        console.log("DATOS DEL VÍDEO CARGADOS.");
-
-    });
-
-
-    video.addEventListener("canplay", function () {
-
-        console.log("EL VÍDEO PUEDE REPRODUCIRSE.");
-
-    });
-
-
-    video.addEventListener("playing", function () {
-
-        console.log("VÍDEO REPRODUCIÉNDOSE.");
-
-        if (!deteccionActiva) {
-
-            deteccionActiva = true;
-
-            iniciarDeteccion();
+            }
 
         }
+    );
 
-    });
 
+    video.addEventListener(
+        "error",
+        function () {
 
-    video.addEventListener("error", function () {
+            console.error(
+                "ERROR DEL VÍDEO:"
+            );
 
-        console.error("ERROR DEL VÍDEO:");
-        console.error(video.error);
+            console.error(
+                video.error
+            );
 
-    });
+        }
+    );
 
 
     video.load();
 
 
     video.play()
-
         .then(function () {
 
-            console.log("PLAY EJECUTADO CORRECTAMENTE.");
+            console.log(
+                "PLAY EJECUTADO CORRECTAMENTE."
+            );
 
         })
-
         .catch(function (error) {
 
-            console.error("ERROR AL EJECUTAR PLAY:");
+            console.error(
+                "ERROR AL EJECUTAR PLAY:"
+            );
+
             console.error(error);
 
         });
@@ -195,122 +216,156 @@ function prepararVideo() {
 
 
 // ============================================================
-// DETECCIÓN FACIAL
+// DETECCIÓN
 // ============================================================
 
 async function iniciarDeteccion() {
 
-    console.log("INICIANDO DETECCIÓN FACIAL.");
+    console.log(
+        "INICIANDO DETECCIÓN FACIAL."
+    );
 
-    while (!video.paused && !video.ended) {
+
+    while (
+        !video.paused &&
+        !video.ended
+    ) {
 
         if (!procesando) {
 
             procesando = true;
 
-            try {
+            analizarFotograma();
 
-                // ------------------------------------------------
-                // COPIAR EL VÍDEO A UN CANVAS PEQUEÑO
-                // ------------------------------------------------
+        }
 
-                ctxDeteccion.drawImage(
-                    video,
-                    0,
-                    0,
-                    320,
-                    240
-                );
+        await esperar(500);
+
+    }
+
+}
 
 
-                // ------------------------------------------------
-                // DETECTAR CARAS EN EL CANVAS
-                // ------------------------------------------------
+// ============================================================
+// ANALIZAR UN FOTOGRAMA
+// ============================================================
 
-                const detecciones = await faceapi.detectAllFaces(
-                    canvasDeteccion,
-                    new faceapi.TinyFaceDetectorOptions({
-                        inputSize: 160,
-                        scoreThreshold: 0.35
-                    })
-                );
+async function analizarFotograma() {
 
+    try {
 
-                // ------------------------------------------------
-                // ESCALAR LAS COORDENADAS
-                // ------------------------------------------------
+        // Copiar vídeo al canvas pequeño
 
-                const deteccionesEscaladas =
-                    detecciones.map(function (deteccion) {
-
-                        const box = deteccion.box;
-
-                        return {
-                            box: {
-                                x: box.x * (video.clientWidth / 320),
-                                y: box.y * (video.clientHeight / 240),
-                                width: box.width * (video.clientWidth / 320),
-                                height: box.height * (video.clientHeight / 240)
-                            }
-                        };
-
-                    });
+        ctx.drawImage(
+            video,
+            0,
+            0,
+            320,
+            240
+        );
 
 
-                // ------------------------------------------------
-                // 4 O MÁS CARAS
-                // ------------------------------------------------
+        console.log(
+            "Analizando fotograma..."
+        );
 
-                if (deteccionesEscaladas.length >= 4) {
 
-                    colocarImagen(
-                        grullasImage,
-                        deteccionesEscaladas[0].box
-                    );
+        const detecciones =
+            await faceapi.detectAllFaces(
+                canvasDeteccion,
+                new faceapi.TinyFaceDetectorOptions({
 
-                    colocarImagen(
-                        libelulaImage,
-                        deteccionesEscaladas[1].box
-                    );
+                    inputSize: 128,
 
-                    colocarImagen(
-                        mariposasImage,
-                        deteccionesEscaladas[2].box
-                    );
+                    scoreThreshold: 0.3
 
-                    colocarImagen(
-                        pezImage,
-                        deteccionesEscaladas[3].box
-                    );
+                })
+            );
 
-                } else {
 
-                    ocultarImagenes();
+        console.log(
+            "Caras detectadas:",
+            detecciones.length
+        );
+
+
+        const escalaX =
+            video.clientWidth / 320;
+
+        const escalaY =
+            video.clientHeight / 240;
+
+
+        const resultados =
+            detecciones.map(
+                function (deteccion) {
+
+                    const box =
+                        deteccion.box;
+
+                    return {
+
+                        x: box.x * escalaX,
+
+                        y: box.y * escalaY,
+
+                        width:
+                            box.width * escalaX,
+
+                        height:
+                            box.height * escalaY
+
+                    };
 
                 }
+            );
 
-            } catch (error) {
 
-                console.error(
-                    "ERROR EN DETECCIÓN:"
-                );
+        // ====================================================
+        // CUATRO CARAS
+        // ====================================================
 
-                console.error(error);
+        if (resultados.length >= 4) {
 
-            }
+            colocarImagen(
+                grullasImage,
+                resultados[0]
+            );
 
-            procesando = false;
+            colocarImagen(
+                libelulaImage,
+                resultados[1]
+            );
+
+            colocarImagen(
+                mariposasImage,
+                resultados[2]
+            );
+
+            colocarImagen(
+                pezImage,
+                resultados[3]
+            );
+
+        } else {
+
+            ocultarImagenes();
 
         }
 
 
-        // ------------------------------------------------
-        // ESPERAR 300 ms
-        // ------------------------------------------------
+    } catch (error) {
 
-        await esperar(300);
+        console.error(
+            "ERROR DETECTANDO CARAS:"
+        );
+
+        console.error(error);
 
     }
+
+
+    procesando = false;
 
 }
 
@@ -349,19 +404,31 @@ function colocarImagen(img, box) {
 function ocultarImagenes() {
 
     if (grullasImage) {
-        grullasImage.style.display = "none";
+
+        grullasImage.style.display =
+            "none";
+
     }
 
     if (libelulaImage) {
-        libelulaImage.style.display = "none";
+
+        libelulaImage.style.display =
+            "none";
+
     }
 
     if (mariposasImage) {
-        mariposasImage.style.display = "none";
+
+        mariposasImage.style.display =
+            "none";
+
     }
 
     if (pezImage) {
-        pezImage.style.display = "none";
+
+        pezImage.style.display =
+            "none";
+
     }
 
 }
@@ -373,11 +440,16 @@ function ocultarImagenes() {
 
 function esperar(ms) {
 
-    return new Promise(function (resolve) {
+    return new Promise(
+        function (resolve) {
 
-        setTimeout(resolve, ms);
+            setTimeout(
+                resolve,
+                ms
+            );
 
-    });
+        }
+    );
 
 }
 
