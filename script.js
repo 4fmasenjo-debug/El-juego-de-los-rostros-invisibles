@@ -1,11 +1,5 @@
-console.log("=================================");
+```js
 console.log("INICIANDO EL JUEGO DE LOS ROSTROS INVISIBLES");
-console.log("=================================");
-
-
-// ============================================================
-// ELEMENTOS
-// ============================================================
 
 const video = document.getElementById("video");
 const overlay = document.getElementById("overlay-elements");
@@ -15,26 +9,23 @@ let libelulaImage = null;
 let mariposasImage = null;
 let pezImage = null;
 
+let modeloCargado = false;
+let detectando = false;
+
 
 // ============================================================
 // COMPROBAR FACE-API
 // ============================================================
 
-console.log("Comprobando face-api.js...");
-
 if (typeof faceapi === "undefined") {
-
-    console.error("face-api.js no se ha cargado.");
-
     throw new Error("faceapi no está disponible.");
-
 }
 
 console.log("face-api.js cargado correctamente.");
 
 
 // ============================================================
-// CREAR IMAGEN
+// CREAR IMÁGENES
 // ============================================================
 
 function crearImagen(ruta) {
@@ -50,18 +41,6 @@ function crearImagen(ruta) {
 
     overlay.appendChild(img);
 
-    img.onload = function () {
-
-        console.log("Imagen cargada correctamente:", ruta);
-
-    };
-
-    img.onerror = function () {
-
-        console.error("ERROR cargando imagen:", ruta);
-
-    };
-
     return img;
 }
 
@@ -72,16 +51,12 @@ function crearImagen(ruta) {
 
 function cargarImagenes() {
 
-    console.log("Cargando imágenes...");
-
     grullasImage = crearImagen("./grullas.png");
-
     libelulaImage = crearImagen("./libelula.png");
-
     mariposasImage = crearImagen("./mariposas.png");
-
     pezImage = crearImagen("./pez.png");
 
+    console.log("Imágenes cargadas.");
 }
 
 
@@ -97,7 +72,9 @@ async function cargarModelo() {
 
         await faceapi.nets.tinyFaceDetector.loadFromUri("./models");
 
-        console.log("Tiny Face Detector cargado correctamente.");
+        modeloCargado = true;
+
+        console.log("Modelo cargado correctamente.");
 
         cargarImagenes();
 
@@ -105,12 +82,9 @@ async function cargarModelo() {
 
     } catch (error) {
 
-        console.error("ERROR CARGANDO EL MODELO:");
-
-        console.error(error);
+        console.error("Error cargando el modelo:", error);
 
     }
-
 }
 
 
@@ -120,59 +94,27 @@ async function cargarModelo() {
 
 function prepararVideo() {
 
-    console.log("Preparando vídeo...");
-
-
     if (!video) {
 
-        console.error("No existe el elemento #video.");
+        console.error("No existe el elemento video.");
 
         return;
 
     }
 
-
-    // --------------------------------------------------------
-    // COMPROBAR QUE EL VÍDEO CARGA
-    // --------------------------------------------------------
-
-    video.addEventListener("loadedmetadata", function () {
-
-        console.log(
-            "Vídeo cargado:",
-            video.videoWidth,
-            "x",
-            video.videoHeight
-        );
-
-    });
-
-
-    video.addEventListener("error", function (error) {
-
-        console.error("ERROR CARGANDO EL VÍDEO.");
-
-        console.error(error);
-
-    });
-
-
-    // --------------------------------------------------------
-    // CUANDO HAY DATOS SUFICIENTES
-    // --------------------------------------------------------
-
-    video.addEventListener("loadeddata", function () {
-
-        console.log("Datos del vídeo cargados.");
+    video.addEventListener("loadeddata", () => {
 
         iniciarVideo();
 
     }, { once: true });
 
 
-    // --------------------------------------------------------
-    // POR SI EL VÍDEO YA ESTÁ CARGADO
-    // --------------------------------------------------------
+    video.addEventListener("error", () => {
+
+        console.error("Error cargando el vídeo.");
+
+    });
+
 
     if (video.readyState >= 2) {
 
@@ -184,12 +126,10 @@ function prepararVideo() {
 
 
 // ============================================================
-// INICIAR VÍDEO
+// REPRODUCIR VÍDEO
 // ============================================================
 
 async function iniciarVideo() {
-
-    console.log("Iniciando vídeo...");
 
     try {
 
@@ -201,9 +141,7 @@ async function iniciarVideo() {
 
     } catch (error) {
 
-        console.error("No se pudo reproducir el vídeo:");
-
-        console.error(error);
+        console.error("No se pudo reproducir el vídeo:", error);
 
     }
 
@@ -216,148 +154,96 @@ async function iniciarVideo() {
 
 function iniciarDeteccion() {
 
-    console.log("Iniciando detección facial...");
+    if (!modeloCargado || detectando) {
 
-    detectarRostros();
+        return;
+
+    }
+
+    detectando = true;
+
+    detectar();
 
 }
 
 
 // ============================================================
-// DETECTAR ROSTROS
+// DETECCIÓN
 // ============================================================
 
-async function detectarRostros() {
+async function detectar() {
 
     while (!video.paused && !video.ended) {
 
         try {
 
-            // ------------------------------------------------
-            // TAMAÑO DEL VÍDEO EN PANTALLA
-            // ------------------------------------------------
+            const ancho = video.clientWidth;
+            const alto = video.clientHeight;
 
-            const displaySize = {
-
-                width: video.clientWidth,
-
-                height: video.clientHeight
-
-            };
-
-
-            // ------------------------------------------------
-            // DETECTAR CARAS
-            // ------------------------------------------------
-
-            const detections = await faceapi.detectAllFaces(
-
+            const detecciones = await faceapi.detectAllFaces(
                 video,
-
                 new faceapi.TinyFaceDetectorOptions({
-
-                    inputSize: 320,
-
+                    inputSize: 160,
                     scoreThreshold: 0.5
-
                 })
+            );
 
+            const resultados = faceapi.resizeResults(
+                detecciones,
+                {
+                    width: ancho,
+                    height: alto
+                }
             );
 
 
-            // ------------------------------------------------
-            // ADAPTAR COORDENADAS
-            // ------------------------------------------------
-
-            const resizedDetections = faceapi.resizeResults(
-
-                detections,
-
-                displaySize
-
-            );
-
-
-            console.log(
-                "Rostros detectados:",
-                resizedDetections.length
-            );
-
-
-            // ------------------------------------------------
-            // 4 O MÁS ROSTROS
-            // ------------------------------------------------
-
-            if (resizedDetections.length >= 4) {
-
-                console.log(
-                    "Cuatro o más rostros detectados."
-                );
-
+            if (resultados.length >= 4) {
 
                 colocarImagen(
-
                     grullasImage,
-
-                    resizedDetections[0].box
-
+                    resultados[0].box
                 );
 
-
                 colocarImagen(
-
                     libelulaImage,
-
-                    resizedDetections[1].box
-
+                    resultados[1].box
                 );
 
-
                 colocarImagen(
-
                     mariposasImage,
-
-                    resizedDetections[2].box
-
+                    resultados[2].box
                 );
-
 
                 colocarImagen(
-
                     pezImage,
-
-                    resizedDetections[3].box
-
+                    resultados[3].box
                 );
 
-            }
-
-            // ------------------------------------------------
-            // MENOS DE 4 ROSTROS
-            // ------------------------------------------------
-
-            else {
+            } else {
 
                 ocultarImagenes();
 
             }
 
-        }
-
-        catch (error) {
+        } catch (error) {
 
             console.error(
-                "ERROR DURANTE LA DETECCIÓN:"
+                "Error en la detección:",
+                error
             );
-
-            console.error(error);
 
         }
 
 
-        await esperar(100);
+        // ----------------------------------------------------
+        // 200 ms = aproximadamente 5 detecciones por segundo
+        // ----------------------------------------------------
+
+        await esperar(200);
 
     }
+
+    detectando = false;
 
 }
 
@@ -369,20 +255,15 @@ async function detectarRostros() {
 function colocarImagen(img, box) {
 
     if (!img) {
-
         return;
-
     }
-
 
     img.style.display = "block";
 
     img.style.left = `${box.x}px`;
-
     img.style.top = `${box.y}px`;
 
     img.style.width = `${box.width}px`;
-
     img.style.height = `${box.height}px`;
 
 }
@@ -395,27 +276,19 @@ function colocarImagen(img, box) {
 function ocultarImagenes() {
 
     if (grullasImage) {
-
         grullasImage.style.display = "none";
-
     }
 
     if (libelulaImage) {
-
         libelulaImage.style.display = "none";
-
     }
 
     if (mariposasImage) {
-
         mariposasImage.style.display = "none";
-
     }
 
     if (pezImage) {
-
         pezImage.style.display = "none";
-
     }
 
 }
@@ -427,7 +300,7 @@ function ocultarImagenes() {
 
 function esperar(ms) {
 
-    return new Promise(function (resolve) {
+    return new Promise(resolve => {
 
         setTimeout(resolve, ms);
 
@@ -441,5 +314,6 @@ function esperar(ms) {
 // ============================================================
 
 cargarModelo();
+```
 
 
