@@ -1,25 +1,14 @@
-console.log(
-    "================================="
-);
-
-console.log(
-    "INICIANDO EL JUEGO DE LOS ROSTROS INVISIBLES"
-);
-
-console.log(
-    "================================="
-);
+console.log("=================================");
+console.log("INICIANDO EL JUEGO DE LOS ROSTROS INVISIBLES");
+console.log("=================================");
 
 
 // ============================================================
-// ELEMENTOS HTML
+// ELEMENTOS
 // ============================================================
 
-const video =
-    document.getElementById("video");
-
-const overlay =
-    document.getElementById("overlay-elements");
+const video = document.getElementById("video");
+const overlay = document.getElementById("overlay-elements");
 
 
 // ============================================================
@@ -29,53 +18,45 @@ const overlay =
 let canvas = null;
 
 let grullasImage = null;
-
 let libelulaImage = null;
-
 let mariposasImage = null;
-
 let pezImage = null;
 
 let deteccionIniciada = false;
 
 
 // ============================================================
-// COMPROBAR ELEMENTOS
+// COMPROBACIONES
 // ============================================================
 
-if (!video) {
+if (typeof faceapi === "undefined") {
 
     console.error(
-        "❌ ERROR: no se encuentra #video"
-    );
-
-}
-
-if (!overlay) {
-
-    console.error(
-        "❌ ERROR: no se encuentra #overlay-elements"
-    );
-
-}
-
-
-// ============================================================
-// COMPROBAR FACE API
-// ============================================================
-
-if (
-    typeof faceapi === "undefined"
-) {
-
-    console.error(
-        "❌ ERROR: face-api.js NO está cargado"
+        "❌ face-api.js NO está cargado."
     );
 
 } else {
 
     console.log(
-        "✅ face-api.js cargado correctamente"
+        "✅ face-api.js cargado correctamente."
+    );
+
+}
+
+
+if (!video) {
+
+    console.error(
+        "❌ No existe el elemento #video."
+    );
+
+}
+
+
+if (!overlay) {
+
+    console.error(
+        "❌ No existe #overlay-elements."
     );
 
 }
@@ -85,80 +66,71 @@ if (
 // CREAR IMAGEN
 // ============================================================
 
-function crearImagen(src) {
+function crearImagen(src, nombre) {
 
     console.log(
-        "Creando imagen:",
+        "Creando:",
+        nombre,
         src
     );
 
 
-    const img =
-        document.createElement("img");
+    const img = document.createElement("img");
 
 
-    img.src =
-        src;
+    img.src = src;
 
 
-    img.style.position =
-        "absolute";
+    img.alt = nombre;
 
 
-    img.style.display =
-        "none";
+    img.style.position = "absolute";
+
+    img.style.display = "none";
+
+    img.style.pointerEvents = "none";
+
+    img.style.userSelect = "none";
+
+    img.style.zIndex = "100";
 
 
-    img.style.pointerEvents =
-        "none";
+    overlay.appendChild(img);
 
 
-    img.style.userSelect =
-        "none";
-
-
-    img.style.zIndex =
-        "100";
-
-
-    overlay.appendChild(
-        img
-    );
-
-
-    // --------------------------------------------------------
-    // IMAGEN CARGADA
-    // --------------------------------------------------------
-
-    img.onload = function () {
+    img.addEventListener("load", function () {
 
         console.log(
             "✅ IMAGEN CARGADA:",
-            src
+            nombre
         );
 
         console.log(
-            "Tamaño:",
-            img.naturalWidth,
-            "x",
+            "   naturalWidth:",
+            img.naturalWidth
+        );
+
+        console.log(
+            "   naturalHeight:",
             img.naturalHeight
         );
 
-    };
+    });
 
 
-    // --------------------------------------------------------
-    // ERROR
-    // --------------------------------------------------------
-
-    img.onerror = function () {
+    img.addEventListener("error", function () {
 
         console.error(
-            "❌ ERROR CARGANDO IMAGEN:",
-            src
+            "❌ ERROR CARGANDO:",
+            nombre
         );
 
-    };
+        console.error(
+            "Ruta:",
+            img.src
+        );
+
+    });
 
 
     return img;
@@ -167,45 +139,41 @@ function crearImagen(src) {
 
 
 // ============================================================
-// CARGAR TODAS LAS IMÁGENES
+// CARGAR IMÁGENES
 // ============================================================
 
 function cargarImagenes() {
 
-    console.log(
-        "================================="
-    );
-
-    console.log(
-        "CARGANDO IMÁGENES"
-    );
-
-    console.log(
-        "================================="
-    );
+    console.log("=================================");
+    console.log("CARGANDO IMÁGENES");
+    console.log("=================================");
 
 
     grullasImage =
         crearImagen(
-            "./grullas.png"
+            "./grullas.png",
+            "GRULLAS"
         );
 
 
     libelulaImage =
         crearImagen(
-            "./libelula.png"
+            "./libelula.png",
+            "LIBÉLULA"
         );
 
 
     mariposasImage =
         crearImagen(
-            "./mariposas.png"
+            "./mariposas.png",
+            "MARIPOSAS"
         );
 
 
     pezImage =
         crearImagen(
-            "./pez.png"
+            "./pez.png",
+            "PEZ"
         );
 
 }
@@ -215,106 +183,101 @@ function cargarImagenes() {
 // OCULTAR IMAGEN
 // ============================================================
 
-function ocultarImagen(imagen) {
+function ocultarImagen(img) {
 
-    if (!imagen) {
-
+    if (!img) {
         return;
-
     }
 
-    imagen.style.display =
-        "none";
+    img.style.display = "none";
 
 }
 
 
 // ============================================================
-// OCULTAR TODAS LAS IMÁGENES
+// COLOCAR IMAGEN
 // ============================================================
 
-function ocultarTodasLasImagenes() {
+function colocarImagen(img, box, nombre) {
 
-    ocultarImagen(
-        grullasImage
-    );
+    if (!img) {
 
-    ocultarImagen(
-        libelulaImage
-    );
-
-    ocultarImagen(
-        mariposasImage
-    );
-
-    ocultarImagen(
-        pezImage
-    );
-
-}
-
-
-// ============================================================
-// COLOCAR IMAGEN SOBRE UNA CARA
-// ============================================================
-
-function colocarImagen(
-    imagen,
-    caja
-) {
-
-    if (!imagen) {
+        console.error(
+            "Imagen inexistente:",
+            nombre
+        );
 
         return;
 
     }
 
 
-    if (!caja) {
+    if (!box) {
 
-        imagen.style.display =
-            "none";
+        ocultarImagen(img);
 
         return;
 
     }
+
+
+    // --------------------------------------------------------
+    // COORDENADAS
+    // --------------------------------------------------------
+
+    const x = box.x;
+    const y = box.y;
+
+    const width = box.width;
+    const height = box.height;
+
+
+    console.log(
+        nombre,
+        "→",
+        Math.round(x),
+        Math.round(y),
+        Math.round(width),
+        Math.round(height)
+    );
 
 
     // --------------------------------------------------------
     // POSICIÓN
     // --------------------------------------------------------
 
-    imagen.style.left =
-        caja.x + "px";
+    img.style.left =
+        Math.round(x) + "px";
 
 
-    imagen.style.top =
-        caja.y + "px";
+    img.style.top =
+        Math.round(y) + "px";
 
 
     // --------------------------------------------------------
     // TAMAÑO
     // --------------------------------------------------------
 
-    imagen.style.width =
-        caja.width + "px";
+    img.style.width =
+        Math.round(width) + "px";
 
 
-    imagen.style.height =
-        caja.height + "px";
+    img.style.height =
+        Math.round(height) + "px";
+
+
+    // --------------------------------------------------------
+    // CAPA
+    // --------------------------------------------------------
+
+    img.style.zIndex = "100";
 
 
     // --------------------------------------------------------
     // MOSTRAR
     // --------------------------------------------------------
 
-    imagen.style.display =
-        "block";
-
-
-    imagen.style.zIndex =
-        "100";
-
+    img.style.display = "block";
 
 }
 
@@ -325,27 +288,10 @@ function colocarImagen(
 
 async function iniciar() {
 
-    console.log(
-        "================================="
-    );
-
-    console.log(
-        "INICIANDO CARGA"
-    );
-
-    console.log(
-        "================================="
-    );
-
-
     try {
 
-        // ----------------------------------------------------
-        // MODELO
-        // ----------------------------------------------------
-
         console.log(
-            "1. Cargando Tiny Face Detector..."
+            "Cargando modelo..."
         );
 
 
@@ -355,13 +301,9 @@ async function iniciar() {
 
 
         console.log(
-            "2. Tiny Face Detector OK"
+            "MODELO CARGADO."
         );
 
-
-        // ----------------------------------------------------
-        // VÍDEO
-        // ----------------------------------------------------
 
         video.addEventListener(
             "playing",
@@ -369,11 +311,6 @@ async function iniciar() {
             {
                 once: true
             }
-        );
-
-
-        console.log(
-            "3. Preparando vídeo..."
         );
 
 
@@ -387,12 +324,10 @@ async function iniciar() {
         } catch (error) {
 
             console.warn(
-                "⚠️ El navegador bloqueó autoplay."
+                "Autoplay bloqueado."
             );
 
-            console.warn(
-                error
-            );
+            console.warn(error);
 
         }
 
@@ -400,20 +335,10 @@ async function iniciar() {
     } catch (error) {
 
         console.error(
-            "================================="
+            "❌ ERROR AL INICIAR:"
         );
 
-        console.error(
-            "❌ ERROR AL INICIAR"
-        );
-
-        console.error(
-            error
-        );
-
-        console.error(
-            "================================="
-        );
+        console.error(error);
 
     }
 
@@ -421,21 +346,13 @@ async function iniciar() {
 
 
 // ============================================================
-// VÍDEO LISTO
+// VÍDEO
 // ============================================================
 
 function iniciarVideo() {
 
     console.log(
-        "================================="
-    );
-
-    console.log(
-        "VÍDEO REPRODUCIÉNDOSE"
-    );
-
-    console.log(
-        "================================="
+        "VÍDEO REPRODUCIÉNDOSE."
     );
 
 
@@ -447,17 +364,13 @@ function iniciarVideo() {
     );
 
 
-    // --------------------------------------------------------
-    // COMPROBAR DIMENSIONES
-    // --------------------------------------------------------
-
     if (
         video.videoWidth === 0 ||
         video.videoHeight === 0
     ) {
 
         console.error(
-            "❌ El vídeo no tiene dimensiones válidas."
+            "❌ Tamaño de vídeo inválido."
         );
 
         return;
@@ -465,26 +378,15 @@ function iniciarVideo() {
     }
 
 
-    // --------------------------------------------------------
-    // EVITAR INICIAR DOS VECES
-    // --------------------------------------------------------
-
-    if (
-        deteccionIniciada
-    ) {
+    if (deteccionIniciada) {
 
         return;
 
     }
 
 
-    deteccionIniciada =
-        true;
+    deteccionIniciada = true;
 
-
-    // --------------------------------------------------------
-    // COMENZAR DETECCIÓN
-    // --------------------------------------------------------
 
     detectar();
 
@@ -511,7 +413,7 @@ async function detectar() {
 
 
     // ========================================================
-    // CREAR CANVAS
+    // CANVAS
     // ========================================================
 
     canvas =
@@ -575,22 +477,17 @@ async function detectar() {
 
 
     // ========================================================
-    // CARGAR IMÁGENES
+    // IMÁGENES
     // ========================================================
 
     cargarImagenes();
 
 
     // ========================================================
-    // FUNCIÓN PARA DETECTAR CADA FRAME
+    // DETECTAR FRAME
     // ========================================================
 
     async function detectarFrame() {
-
-
-        // ----------------------------------------------------
-        // COMPROBAR VÍDEO
-        // ----------------------------------------------------
 
         if (
             video.paused ||
@@ -608,10 +505,9 @@ async function detectar() {
 
         try {
 
-
-            // =================================================
-            // DETECTAR CARAS
-            // =================================================
+            // ------------------------------------------------
+            // DETECCIÓN
+            // ------------------------------------------------
 
             const detecciones =
                 await faceapi.detectAllFaces(
@@ -629,17 +525,14 @@ async function detectar() {
                 );
 
 
-            // =================================================
-            // REDIMENSIONAR RESULTADOS
-            // =================================================
+            // ------------------------------------------------
+            // REDIMENSIONAR
+            // ------------------------------------------------
 
             const caras =
                 faceapi.resizeResults(
-
                     detecciones,
-
                     displaySize
-
                 );
 
 
@@ -649,14 +542,12 @@ async function detectar() {
             );
 
 
-            // =================================================
+            // ------------------------------------------------
             // LIMPIAR CANVAS
-            // =================================================
+            // ------------------------------------------------
 
             const ctx =
-                canvas.getContext(
-                    "2d"
-                );
+                canvas.getContext("2d");
 
 
             ctx.clearRect(
@@ -668,21 +559,17 @@ async function detectar() {
 
 
             // =================================================
-            // CARA 1 → GRULLAS
+            // CARA 1
             // =================================================
 
             if (
                 caras.length >= 1
             ) {
 
-                console.log(
-                    "Cara 1 → GRULLAS"
-                );
-
-
                 colocarImagen(
                     grullasImage,
-                    caras[0].box
+                    caras[0].box,
+                    "GRULLAS"
                 );
 
             } else {
@@ -695,21 +582,17 @@ async function detectar() {
 
 
             // =================================================
-            // CARA 2 → LIBÉLULA
+            // CARA 2
             // =================================================
 
             if (
                 caras.length >= 2
             ) {
 
-                console.log(
-                    "Cara 2 → LIBÉLULA"
-                );
-
-
                 colocarImagen(
                     libelulaImage,
-                    caras[1].box
+                    caras[1].box,
+                    "LIBÉLULA"
                 );
 
             } else {
@@ -722,21 +605,17 @@ async function detectar() {
 
 
             // =================================================
-            // CARA 3 → MARIPOSAS
+            // CARA 3
             // =================================================
 
             if (
                 caras.length >= 3
             ) {
 
-                console.log(
-                    "Cara 3 → MARIPOSAS"
-                );
-
-
                 colocarImagen(
                     mariposasImage,
-                    caras[2].box
+                    caras[2].box,
+                    "MARIPOSAS"
                 );
 
             } else {
@@ -749,21 +628,17 @@ async function detectar() {
 
 
             // =================================================
-            // CARA 4 → PEZ
+            // CARA 4
             // =================================================
 
             if (
                 caras.length >= 4
             ) {
 
-                console.log(
-                    "Cara 4 → PEZ"
-                );
-
-
                 colocarImagen(
                     pezImage,
-                    caras[3].box
+                    caras[3].box,
+                    "PEZ"
                 );
 
             } else {
@@ -781,16 +656,10 @@ async function detectar() {
                 "❌ ERROR DURANTE LA DETECCIÓN:"
             );
 
-            console.error(
-                error
-            );
+            console.error(error);
 
         }
 
-
-        // ====================================================
-        // SIGUIENTE FRAME
-        // ====================================================
 
         requestAnimationFrame(
             detectarFrame
@@ -800,7 +669,7 @@ async function detectar() {
 
 
     // ========================================================
-    // COMENZAR
+    // ARRANCAR
     // ========================================================
 
     detectarFrame();
@@ -809,7 +678,7 @@ async function detectar() {
 
 
 // ============================================================
-// INICIAR PROGRAMA
+// INICIAR
 // ============================================================
 
 iniciar();
