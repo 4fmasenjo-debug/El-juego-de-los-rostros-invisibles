@@ -43,8 +43,7 @@ async function iniciar() {
         );
 
 
-        video.src =
-        "./video.mp4";
+        video.src="https://4fmasenjo-debug.github.io/El-juego-de-los-rostros-invisibles/video.mp4";
 
 
         video.load();
