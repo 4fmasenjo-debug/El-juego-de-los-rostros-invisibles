@@ -1,33 +1,73 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>El juego de los rostros invisibles</title>
+
+    <!-- Evita la petición de favicon.ico -->
+    <link rel="icon" href="data:,">
+
     <style>
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            background: #000;
+        }
+
         #overlay-elements {
             position: relative;
             display: inline-block;
+            line-height: 0;
         }
+
         #video {
             display: block;
             width: 640px;
             height: auto;
         }
+
         #overlay-elements img {
             position: absolute;
-            pointer-events: none;
             z-index: 10;
+            pointer-events: none;
+            display: none;
         }
+
     </style>
+
 </head>
+
 <body>
+
     <div id="overlay-elements">
-        <video id="video" muted loop playsinline preload="auto">
+
+        <video
+            id="video"
+            muted
+            loop
+            playsinline
+            preload="auto"
+        >
             <source src="./video.mp4" type="video/mp4">
         </video>
+
     </div>
+
+
+    <!-- FACE-API.JS -->
+
     <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+
+
+    <!-- NUESTRO SCRIPT -->
+
     <script src="./script.js"></script>
+
 </body>
+
 </html>
