@@ -4,13 +4,20 @@ console.log("INICIANDO EL JUEGO DE LOS ROSTROS INVISIBLES");
 const video = document.getElementById("video");
 const overlay = document.getElementById("overlay-elements");
 
-let grullasImage;
-let libelulaImage;
-let mariposasImage;
-let pezImage;
+let grullasImage = null;
+let libelulaImage = null;
+let mariposasImage = null;
+let pezImage = null;
 
+let modeloCargado = false;
 let deteccionActiva = false;
 let procesando = false;
+
+// Canvas pequeño utilizado SOLO para detectar las caras
+const canvasDeteccion = document.createElement("canvas");
+const ctxDeteccion = canvasDeteccion.getContext("2d", {
+    willReadFrequently: true
+});
 
 
 // ============================================================
@@ -18,11 +25,10 @@ let procesando = false;
 // ============================================================
 
 if (typeof faceapi === "undefined") {
-    console.error("face-api.js NO está disponible.");
     throw new Error("faceapi no está disponible.");
 }
 
-console.log("face-api.js cargado correctamente.");
+console.log("face-api.js cargado.");
 
 
 // ============================================================
@@ -77,6 +83,8 @@ async function cargarModelo() {
 
         await faceapi.nets.tinyFaceDetector.loadFromUri("./models");
 
+        modeloCargado = true;
+
         console.log("Modelo cargado correctamente.");
 
         cargarImagenes();
@@ -85,10 +93,11 @@ async function cargarModelo() {
 
     } catch (error) {
 
-        console.error("ERROR CARGANDO EL MODELO:");
+        console.error("ERROR CARGANDO MODELO:");
         console.error(error);
 
     }
+
 }
 
 
@@ -98,27 +107,52 @@ async function cargarModelo() {
 
 function prepararVideo() {
 
-    console.log("Preparando vídeo...");
+    console.log("Preparando vídeo.");
 
-    video.muted = true;
-    video.loop = true;
-    video.playsInline = true;
+    console.log(
+        "URL del vídeo:",
+        video.currentSrc
+    );
+
+    console.log(
+        "ReadyState:",
+        video.readyState
+    );
+
 
     video.addEventListener("loadedmetadata", function () {
 
         console.log(
-            "Vídeo:",
+            "METADATA DEL VÍDEO CARGADA:",
             video.videoWidth,
             "x",
             video.videoHeight
         );
+
+        // Canvas de análisis pequeño
+        canvasDeteccion.width = 320;
+        canvasDeteccion.height = 240;
+
+    });
+
+
+    video.addEventListener("loadeddata", function () {
+
+        console.log("DATOS DEL VÍDEO CARGADOS.");
+
+    });
+
+
+    video.addEventListener("canplay", function () {
+
+        console.log("EL VÍDEO PUEDE REPRODUCIRSE.");
 
     });
 
 
     video.addEventListener("playing", function () {
 
-        console.log("Vídeo reproduciéndose.");
+        console.log("VÍDEO REPRODUCIÉNDOSE.");
 
         if (!deteccionActiva) {
 
@@ -127,20 +161,6 @@ function prepararVideo() {
             iniciarDeteccion();
 
         }
-
-    });
-
-
-    video.addEventListener("pause", function () {
-
-        console.log("Vídeo pausado.");
-
-    });
-
-
-    video.addEventListener("ended", function () {
-
-        console.log("Vídeo terminado.");
 
     });
 
@@ -157,14 +177,16 @@ function prepararVideo() {
 
 
     video.play()
+
         .then(function () {
 
-            console.log("PLAY CORRECTO.");
+            console.log("PLAY EJECUTADO CORRECTAMENTE.");
 
         })
+
         .catch(function (error) {
 
-            console.error("ERROR AL REPRODUCIR:");
+            console.error("ERROR AL EJECUTAR PLAY:");
             console.error(error);
 
         });
@@ -188,8 +210,25 @@ async function iniciarDeteccion() {
 
             try {
 
-                const detecciones = await faceapi.detectAllFaces(
+                // ------------------------------------------------
+                // COPIAR EL VÍDEO A UN CANVAS PEQUEÑO
+                // ------------------------------------------------
+
+                ctxDeteccion.drawImage(
                     video,
+                    0,
+                    0,
+                    320,
+                    240
+                );
+
+
+                // ------------------------------------------------
+                // DETECTAR CARAS EN EL CANVAS
+                // ------------------------------------------------
+
+                const detecciones = await faceapi.detectAllFaces(
+                    canvasDeteccion,
                     new faceapi.TinyFaceDetectorOptions({
                         inputSize: 160,
                         scoreThreshold: 0.35
@@ -197,56 +236,52 @@ async function iniciarDeteccion() {
                 );
 
 
-                console.log(
-                    "Caras detectadas:",
-                    detecciones.length
-                );
+                // ------------------------------------------------
+                // ESCALAR LAS COORDENADAS
+                // ------------------------------------------------
+
+                const deteccionesEscaladas =
+                    detecciones.map(function (deteccion) {
+
+                        const box = deteccion.box;
+
+                        return {
+                            box: {
+                                x: box.x * (video.clientWidth / 320),
+                                y: box.y * (video.clientHeight / 240),
+                                width: box.width * (video.clientWidth / 320),
+                                height: box.height * (video.clientHeight / 240)
+                            }
+                        };
+
+                    });
 
 
                 // ------------------------------------------------
-                // SI HAY 4 O MÁS PERSONAS
+                // 4 O MÁS CARAS
                 // ------------------------------------------------
 
-                if (detecciones.length >= 4) {
-
-                    const displayWidth = video.clientWidth;
-                    const displayHeight = video.clientHeight;
-
-                    const displaySize = {
-                        width: displayWidth,
-                        height: displayHeight
-                    };
-
-
-                    const resultados = faceapi.resizeResults(
-                        detecciones,
-                        displaySize
-                    );
-
+                if (deteccionesEscaladas.length >= 4) {
 
                     colocarImagen(
                         grullasImage,
-                        resultados[0].box
+                        deteccionesEscaladas[0].box
                     );
-
 
                     colocarImagen(
                         libelulaImage,
-                        resultados[1].box
+                        deteccionesEscaladas[1].box
                     );
-
 
                     colocarImagen(
                         mariposasImage,
-                        resultados[2].box
+                        deteccionesEscaladas[2].box
                     );
-
 
                     colocarImagen(
                         pezImage,
-                        resultados[3].box
+                        deteccionesEscaladas[3].box
                     );
-
 
                 } else {
 
@@ -257,7 +292,7 @@ async function iniciarDeteccion() {
             } catch (error) {
 
                 console.error(
-                    "ERROR DURANTE LA DETECCIÓN:"
+                    "ERROR EN DETECCIÓN:"
                 );
 
                 console.error(error);
@@ -269,7 +304,10 @@ async function iniciarDeteccion() {
         }
 
 
-        // Esperar antes de volver a detectar
+        // ------------------------------------------------
+        // ESPERAR 300 ms
+        // ------------------------------------------------
+
         await esperar(300);
 
     }
@@ -278,7 +316,7 @@ async function iniciarDeteccion() {
 
 
 // ============================================================
-// COLOCAR IMAGEN SOBRE EL ROSTRO
+// COLOCAR IMAGEN
 // ============================================================
 
 function colocarImagen(img, box) {
@@ -289,11 +327,17 @@ function colocarImagen(img, box) {
 
     img.style.display = "block";
 
-    img.style.left = box.x + "px";
-    img.style.top = box.y + "px";
+    img.style.left =
+        box.x + "px";
 
-    img.style.width = box.width + "px";
-    img.style.height = box.height + "px";
+    img.style.top =
+        box.y + "px";
+
+    img.style.width =
+        box.width + "px";
+
+    img.style.height =
+        box.height + "px";
 
 }
 
@@ -343,6 +387,4 @@ function esperar(ms) {
 // ============================================================
 
 cargarModelo();
-
-
 
