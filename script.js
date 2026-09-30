@@ -9,7 +9,7 @@ let mariposasImage = null;
 let pezImage = null;
 
 let modeloCargado = false;
-let detectando = false;
+let deteccionIniciada = false;
 
 
 // ============================================================
@@ -17,14 +17,16 @@ let detectando = false;
 // ============================================================
 
 if (typeof faceapi === "undefined") {
+
     throw new Error("faceapi no está disponible.");
+
 }
 
-console.log("face-api.js cargado correctamente.");
+console.log("face-api.js cargado.");
 
 
 // ============================================================
-// CREAR IMÁGENES
+// CREAR IMAGEN
 // ============================================================
 
 function crearImagen(ruta) {
@@ -40,6 +42,18 @@ function crearImagen(ruta) {
 
     overlay.appendChild(img);
 
+    img.onload = function () {
+
+        console.log("Imagen cargada:", ruta);
+
+    };
+
+    img.onerror = function () {
+
+        console.error("ERROR cargando:", ruta);
+
+    };
+
     return img;
 }
 
@@ -51,11 +65,13 @@ function crearImagen(ruta) {
 function cargarImagenes() {
 
     grullasImage = crearImagen("./grullas.png");
+
     libelulaImage = crearImagen("./libelula.png");
+
     mariposasImage = crearImagen("./mariposas.png");
+
     pezImage = crearImagen("./pez.png");
 
-    console.log("Imágenes cargadas.");
 }
 
 
@@ -81,9 +97,12 @@ async function cargarModelo() {
 
     } catch (error) {
 
-        console.error("Error cargando el modelo:", error);
+        console.error("ERROR CARGANDO MODELO:");
+
+        console.error(error);
 
     }
+
 }
 
 
@@ -93,75 +112,104 @@ async function cargarModelo() {
 
 function prepararVideo() {
 
+    console.log("Preparando vídeo.");
+
     if (!video) {
 
-        console.error("No existe el elemento video.");
+        console.error("No existe #video.");
 
         return;
 
     }
 
-    video.addEventListener("loadeddata", () => {
 
-        iniciarVideo();
+    // --------------------------------------------------------
+    // INFORMACIÓN DEL VÍDEO
+    // --------------------------------------------------------
 
-    }, { once: true });
+    console.log("URL del vídeo:", video.currentSrc);
+
+    console.log("ReadyState:", video.readyState);
 
 
-    video.addEventListener("error", () => {
+    // --------------------------------------------------------
+    // EVENTOS
+    // --------------------------------------------------------
 
-        console.error("Error cargando el vídeo.");
+    video.addEventListener("loadedmetadata", function () {
+
+        console.log(
+            "METADATA DEL VÍDEO CARGADA:",
+            video.videoWidth,
+            "x",
+            video.videoHeight
+        );
 
     });
 
 
-    if (video.readyState >= 2) {
+    video.addEventListener("loadeddata", function () {
 
-        iniciarVideo();
+        console.log("DATOS DEL VÍDEO CARGADOS.");
 
-    }
-
-}
+    });
 
 
-// ============================================================
-// REPRODUCIR VÍDEO
-// ============================================================
+    video.addEventListener("canplay", function () {
 
-async function iniciarVideo() {
+        console.log("EL VÍDEO PUEDE REPRODUCIRSE.");
 
-    try {
-
-        await video.play();
-
-        console.log("Vídeo reproduciéndose.");
-
-        iniciarDeteccion();
-
-    } catch (error) {
-
-        console.error("No se pudo reproducir el vídeo:", error);
-
-    }
-
-}
+    });
 
 
-// ============================================================
-// INICIAR DETECCIÓN
-// ============================================================
+    video.addEventListener("playing", function () {
 
-function iniciarDeteccion() {
+        console.log("VÍDEO REPRODUCIÉNDOSE.");
 
-    if (!modeloCargado || detectando) {
+        if (!deteccionIniciada) {
 
-        return;
+            deteccionIniciada = true;
 
-    }
+            iniciarDeteccion();
 
-    detectando = true;
+        }
 
-    detectar();
+    });
+
+
+    video.addEventListener("error", function () {
+
+        console.error("ERROR DEL VÍDEO.");
+
+        console.error(video.error);
+
+    });
+
+
+    // --------------------------------------------------------
+    // FORZAR CARGA
+    // --------------------------------------------------------
+
+    video.load();
+
+
+    // --------------------------------------------------------
+    // INTENTAR REPRODUCIR
+    // --------------------------------------------------------
+
+    video.play()
+        .then(function () {
+
+            console.log("PLAY EJECUTADO CORRECTAMENTE.");
+
+        })
+        .catch(function (error) {
+
+            console.error("ERROR AL EJECUTAR PLAY:");
+
+            console.error(error);
+
+        });
 
 }
 
@@ -170,29 +218,44 @@ function iniciarDeteccion() {
 // DETECCIÓN
 // ============================================================
 
-async function detectar() {
+async function iniciarDeteccion() {
+
+    console.log("INICIANDO DETECCIÓN FACIAL.");
 
     while (!video.paused && !video.ended) {
 
         try {
 
-            const ancho = video.clientWidth;
-            const alto = video.clientHeight;
+            const displaySize = {
+
+                width: video.clientWidth,
+
+                height: video.clientHeight
+
+            };
+
 
             const detecciones = await faceapi.detectAllFaces(
+
                 video,
+
                 new faceapi.TinyFaceDetectorOptions({
+
                     inputSize: 160,
+
                     scoreThreshold: 0.5
+
                 })
+
             );
 
+
             const resultados = faceapi.resizeResults(
+
                 detecciones,
-                {
-                    width: ancho,
-                    height: alto
-                }
+
+                displaySize
+
             );
 
 
@@ -227,22 +290,16 @@ async function detectar() {
         } catch (error) {
 
             console.error(
-                "Error en la detección:",
+                "ERROR EN DETECCIÓN:",
                 error
             );
 
         }
 
 
-        // ----------------------------------------------------
-        // 200 ms = aproximadamente 5 detecciones por segundo
-        // ----------------------------------------------------
-
-        await esperar(200);
+        await esperar(250);
 
     }
-
-    detectando = false;
 
 }
 
@@ -254,40 +311,52 @@ async function detectar() {
 function colocarImagen(img, box) {
 
     if (!img) {
+
         return;
+
     }
 
     img.style.display = "block";
 
     img.style.left = `${box.x}px`;
+
     img.style.top = `${box.y}px`;
 
     img.style.width = `${box.width}px`;
+
     img.style.height = `${box.height}px`;
 
 }
 
 
 // ============================================================
-// OCULTAR IMÁGENES
+// OCULTAR
 // ============================================================
 
 function ocultarImagenes() {
 
     if (grullasImage) {
+
         grullasImage.style.display = "none";
+
     }
 
     if (libelulaImage) {
+
         libelulaImage.style.display = "none";
+
     }
 
     if (mariposasImage) {
+
         mariposasImage.style.display = "none";
+
     }
 
     if (pezImage) {
+
         pezImage.style.display = "none";
+
     }
 
 }
@@ -299,7 +368,7 @@ function ocultarImagenes() {
 
 function esperar(ms) {
 
-    return new Promise(resolve => {
+    return new Promise(function (resolve) {
 
         setTimeout(resolve, ms);
 
