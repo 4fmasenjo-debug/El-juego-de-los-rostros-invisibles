@@ -1,8 +1,9 @@
 console.clear();
 
-console.log("======================================");
+console.log("==========================================");
 console.log("EL JUEGO DE LOS ROSTROS INVISIBLES");
-console.log("======================================");
+console.log("VERSIÓN GITHUB 2026-10-01");
+console.log("==========================================");
 
 
 // ============================================================
@@ -17,7 +18,7 @@ const overlay =
 
 
 // ============================================================
-// IMÁGENES
+// VARIABLES DE IMÁGENES
 // ============================================================
 
 let grullasImage = null;
@@ -34,27 +35,71 @@ let canvas = null;
 
 
 // ============================================================
-// CONTROL DE DETECCIÓN
+// CONTROL
 // ============================================================
 
-let detectando = false;
+let deteccionIniciada = false;
 
-let ultimoResultado = [];
+let ultimaDeteccion = [];
 
-let vecesSinCara = 0;
+let framesSinCaras = 0;
 
-const MAX_SIN_CARA = 3;
+
+// Número de detecciones consecutivas sin caras
+// antes de ocultar las imágenes.
+
+const MAX_FRAMES_SIN_CARAS = 3;
+
+
+// ============================================================
+// COMPROBAR FACE API
+// ============================================================
+
+if (
+    typeof faceapi === "undefined"
+) {
+
+    console.error(
+        "❌ face-api.js NO está cargado."
+    );
+
+} else {
+
+    console.log(
+        "✅ face-api.js cargado correctamente."
+    );
+
+}
+
+
+// ============================================================
+// COMPROBAR ELEMENTOS
+// ============================================================
+
+console.log(
+    "VIDEO:",
+    video
+);
+
+console.log(
+    "OVERLAY:",
+    overlay
+);
 
 
 // ============================================================
 // CREAR IMAGEN
 // ============================================================
 
-function crearImagen(ruta, nombre) {
+function crearImagen(
+    ruta,
+    nombre
+) {
 
     console.log(
-        "Cargando imagen:",
-        nombre
+        "Cargando:",
+        nombre,
+        ruta
     );
 
 
@@ -62,30 +107,48 @@ function crearImagen(ruta, nombre) {
         document.createElement("img");
 
 
-    img.src = ruta;
-
-    img.alt = nombre;
-
-
-    img.style.position = "absolute";
-
-    img.style.display = "none";
-
-    img.style.pointerEvents = "none";
-
-    img.style.userSelect = "none";
-
-    img.style.zIndex = "200";
+    img.src =
+        ruta;
 
 
-    overlay.appendChild(img);
+    img.alt =
+        nombre;
+
+
+    img.style.position =
+        "absolute";
+
+
+    img.style.display =
+        "none";
+
+
+    img.style.pointerEvents =
+        "none";
+
+
+    img.style.userSelect =
+        "none";
+
+
+    img.style.zIndex =
+        "100";
+
+
+    overlay.appendChild(
+        img
+    );
 
 
     img.onload = function () {
 
         console.log(
-            "Imagen cargada:",
-            nombre,
+            "✅ IMAGEN CARGADA:",
+            nombre
+        );
+
+        console.log(
+            "Tamaño:",
             img.naturalWidth,
             "x",
             img.naturalHeight
@@ -97,8 +160,12 @@ function crearImagen(ruta, nombre) {
     img.onerror = function () {
 
         console.error(
-            "ERROR CARGANDO:",
-            nombre,
+            "❌ ERROR CARGANDO:",
+            nombre
+        );
+
+        console.error(
+            "Ruta:",
             ruta
         );
 
@@ -106,14 +173,28 @@ function crearImagen(ruta, nombre) {
 
 
     return img;
+
 }
 
 
 // ============================================================
-// CARGAR IMÁGENES
+// CARGAR LAS CUATRO IMÁGENES
 // ============================================================
 
 function cargarImagenes() {
+
+    console.log(
+        "=========================================="
+    );
+
+    console.log(
+        "CARGANDO IMÁGENES"
+    );
+
+    console.log(
+        "=========================================="
+    );
+
 
     grullasImage =
         crearImagen(
@@ -146,34 +227,80 @@ function cargarImagenes() {
 
 
 // ============================================================
-// MOSTRAR IMAGEN
+// OCULTAR
 // ============================================================
 
-function mostrarImagen(
-    imagen,
-    caja
+function ocultarImagen(
+    imagen
 ) {
 
-    if (!imagen || !caja) {
+    if (!imagen) {
         return;
     }
 
 
+    imagen.style.display =
+        "none";
+
+}
+
+
+// ============================================================
+// MOSTRAR Y COLOCAR
+// ============================================================
+
+function colocarImagen(
+    imagen,
+    box,
+    nombre
+) {
+
+    if (!imagen) {
+
+        console.error(
+            "No existe:",
+            nombre
+        );
+
+        return;
+
+    }
+
+
+    if (!box) {
+
+        return;
+
+    }
+
+
+    // --------------------------------------------------------
+    // POSICIÓN
+    // --------------------------------------------------------
+
     imagen.style.left =
-        Math.round(caja.x) + "px";
+        Math.round(box.x) + "px";
 
 
     imagen.style.top =
-        Math.round(caja.y) + "px";
+        Math.round(box.y) + "px";
 
+
+    // --------------------------------------------------------
+    // TAMAÑO
+    // --------------------------------------------------------
 
     imagen.style.width =
-        Math.round(caja.width) + "px";
+        Math.round(box.width) + "px";
 
 
     imagen.style.height =
-        Math.round(caja.height) + "px";
+        Math.round(box.height) + "px";
 
+
+    // --------------------------------------------------------
+    // VISIBILIDAD
+    // --------------------------------------------------------
 
     imagen.style.display =
         "block";
@@ -188,118 +315,154 @@ function mostrarImagen(
 
 
     imagen.style.zIndex =
-        "200";
+        "100";
+
+
+    /*
+       Solo mostramos este mensaje cuando
+       realmente colocamos una imagen.
+    */
+
+    console.log(
+        "Filtro:",
+        nombre
+    );
+
 }
 
 
 // ============================================================
-// OCULTAR IMAGEN
+// ACTUALIZAR FILTROS
 // ============================================================
 
-function ocultarImagen(imagen) {
+function actualizarFiltros(
+    caras
+) {
 
-    if (!imagen) {
-        return;
-    }
+    // ========================================================
+    // SI HAY CARAS
+    // ========================================================
 
+    if (
+        caras.length > 0
+    ) {
 
-    imagen.style.display =
-        "none";
-}
-
-
-// ============================================================
-// ACTUALIZAR IMÁGENES
-// ============================================================
-
-function actualizarImagenes(caras) {
-
-    // --------------------------------------------------------
-    // CARA 1
-    // --------------------------------------------------------
-
-    if (caras[0]) {
-
-        mostrarImagen(
-            grullasImage,
-            caras[0].box
-        );
-
-    }
+        framesSinCaras = 0;
 
 
-    // --------------------------------------------------------
-    // CARA 2
-    // --------------------------------------------------------
+        ultimaDeteccion =
+            caras;
 
-    if (caras[1]) {
-
-        mostrarImagen(
-            libelulaImage,
-            caras[1].box
-        );
-
-    }
-
-
-    // --------------------------------------------------------
-    // CARA 3
-    // --------------------------------------------------------
-
-    if (caras[2]) {
-
-        mostrarImagen(
-            mariposasImage,
-            caras[2].box
-        );
-
-    }
-
-
-    // --------------------------------------------------------
-    // CARA 4
-    // --------------------------------------------------------
-
-    if (caras[3]) {
-
-        mostrarImagen(
-            pezImage,
-            caras[3].box
-        );
-
-    }
-
-
-    // --------------------------------------------------------
-    // OCULTAR SOLO DESPUÉS DE VARIOS FRAMES SIN CARAS
-    // --------------------------------------------------------
-
-    if (caras.length === 0) {
-
-        vecesSinCara++;
 
     } else {
 
-        vecesSinCara = 0;
+        framesSinCaras++;
+
+
+        /*
+           No ocultamos inmediatamente.
+           Esperamos varias detecciones.
+        */
+
+        if (
+            framesSinCaras <
+            MAX_FRAMES_SIN_CARAS
+        ) {
+
+            return;
+
+        }
+
+
+        ultimaDeteccion = [];
 
     }
 
 
+    // ========================================================
+    // CARA 1
+    // ========================================================
+
     if (
-        vecesSinCara >= MAX_SIN_CARA
+        caras[0]
     ) {
+
+        colocarImagen(
+            grullasImage,
+            caras[0].box,
+            "GRULLAS"
+        );
+
+    } else {
 
         ocultarImagen(
             grullasImage
         );
 
+    }
+
+
+    // ========================================================
+    // CARA 2
+    // ========================================================
+
+    if (
+        caras[1]
+    ) {
+
+        colocarImagen(
+            libelulaImage,
+            caras[1].box,
+            "LIBELULA"
+        );
+
+    } else {
+
         ocultarImagen(
             libelulaImage
         );
 
+    }
+
+
+    // ========================================================
+    // CARA 3
+    // ========================================================
+
+    if (
+        caras[2]
+    ) {
+
+        colocarImagen(
+            mariposasImage,
+            caras[2].box,
+            "MARIPOSAS"
+        );
+
+    } else {
+
         ocultarImagen(
             mariposasImage
         );
+
+    }
+
+
+    // ========================================================
+    // CARA 4
+    // ========================================================
+
+    if (
+        caras[3]
+    ) {
+
+        colocarImagen(
+            pezImage,
+            caras[3].box,
+            "PEZ"
+        );
+
+    } else {
 
         ocultarImagen(
             pezImage
@@ -311,17 +474,25 @@ function actualizarImagenes(caras) {
 
 
 // ============================================================
-// INICIAR
+// CARGAR MODELO
 // ============================================================
 
 async function iniciar() {
 
-    console.log(
-        "Cargando modelo..."
-    );
-
-
     try {
+
+        console.log(
+            "=========================================="
+        );
+
+        console.log(
+            "CARGANDO TINY FACE DETECTOR"
+        );
+
+        console.log(
+            "=========================================="
+        );
+
 
         await faceapi.nets.tinyFaceDetector.loadFromUri(
             "./models"
@@ -329,7 +500,7 @@ async function iniciar() {
 
 
         console.log(
-            "MODELO CARGADO"
+            "✅ MODELO CARGADO CORRECTAMENTE"
         );
 
 
@@ -355,13 +526,20 @@ async function iniciar() {
                 "Autoplay bloqueado."
             );
 
+            console.warn(
+                error
+            );
+
         }
 
 
     } catch (error) {
 
         console.error(
-            "ERROR CARGANDO MODELO:",
+            "❌ ERROR AL CARGAR MODELO"
+        );
+
+        console.error(
             error
         );
 
@@ -371,13 +549,21 @@ async function iniciar() {
 
 
 // ============================================================
-// INICIAR VÍDEO
+// VÍDEO
 // ============================================================
 
 function iniciarVideo() {
 
     console.log(
+        "=========================================="
+    );
+
+    console.log(
         "VÍDEO REPRODUCIÉNDOSE"
+    );
+
+    console.log(
+        "=========================================="
     );
 
 
@@ -389,33 +575,60 @@ function iniciarVideo() {
     );
 
 
+    if (
+        video.videoWidth === 0 ||
+        video.videoHeight === 0
+    ) {
+
+        console.error(
+            "El vídeo no tiene dimensiones."
+        );
+
+        return;
+
+    }
+
+
+    if (
+        deteccionIniciada
+    ) {
+
+        return;
+
+    }
+
+
+    deteccionIniciada =
+        true;
+
+
     iniciarDeteccion();
 
 }
 
 
 // ============================================================
-// INICIAR DETECCIÓN
+// DETECCIÓN
 // ============================================================
 
 function iniciarDeteccion() {
 
-    if (detectando) {
-        return;
-    }
-
-
-    detectando = true;
-
+    console.log(
+        "=========================================="
+    );
 
     console.log(
-        "INICIANDO DETECCIÓN ESTABLE"
+        "INICIANDO DETECCIÓN FACIAL"
+    );
+
+    console.log(
+        "=========================================="
     );
 
 
-    // --------------------------------------------------------
+    // ========================================================
     // CANVAS
-    // --------------------------------------------------------
+    // ========================================================
 
     canvas =
         faceapi.createCanvasFromMedia(
@@ -443,18 +656,22 @@ function iniciarDeteccion() {
         "576px";
 
 
-    canvas.style.zIndex =
-        "60";
-
-
     canvas.style.pointerEvents =
         "none";
+
+
+    canvas.style.zIndex =
+        "20";
 
 
     overlay.appendChild(
         canvas
     );
 
+
+    // ========================================================
+    // DIMENSIONES
+    // ========================================================
 
     const displaySize = {
 
@@ -473,26 +690,19 @@ function iniciarDeteccion() {
     );
 
 
-    // --------------------------------------------------------
+    // ========================================================
     // IMÁGENES
-    // --------------------------------------------------------
+    // ========================================================
 
     cargarImagenes();
 
 
-    // --------------------------------------------------------
-    // PRIMERA DETECCIÓN
-    // --------------------------------------------------------
-
-    detectarUnaVez();
-
-
-    // --------------------------------------------------------
-    // DETECTAR CADA 100 ms
-    // --------------------------------------------------------
+    // ========================================================
+    // DETECCIÓN CADA 100 MS
+    // ========================================================
 
     setInterval(
-        detectarUnaVez,
+        detectar,
         100
     );
 
@@ -500,14 +710,22 @@ function iniciarDeteccion() {
 
 
 // ============================================================
-// UNA DETECCIÓN
+// DETECTAR
 // ============================================================
 
-async function detectarUnaVez() {
+async function detectar() {
 
     if (
         video.paused ||
-        video.ended ||
+        video.ended
+    ) {
+
+        return;
+
+    }
+
+
+    if (
         video.readyState < 2
     ) {
 
@@ -518,6 +736,10 @@ async function detectarUnaVez() {
 
     try {
 
+        // ====================================================
+        // EXACTAMENTE EL MISMO DETECTOR
+        // ====================================================
+
         const detecciones =
             await faceapi.detectAllFaces(
 
@@ -525,50 +747,48 @@ async function detectarUnaVez() {
 
                 new faceapi.TinyFaceDetectorOptions({
 
-                    inputSize: 160,
+                    inputSize: 128,
 
-                    scoreThreshold: 0.4
+                    scoreThreshold: 0.3
 
                 })
 
             );
 
 
+        // ====================================================
+        // REDIMENSIONAR
+        // ====================================================
+
         const caras =
             faceapi.resizeResults(
+
                 detecciones,
+
                 {
-                    width: video.videoWidth,
-                    height: video.videoHeight
+                    width:
+                        video.videoWidth,
+
+                    height:
+                        video.videoHeight
                 }
+
             );
 
 
-        // ----------------------------------------------------
+        // ====================================================
         // ACTUALIZAR
-        // ----------------------------------------------------
+        // ====================================================
 
-        actualizarImagenes(
+        actualizarFiltros(
             caras
         );
-
-
-        // ----------------------------------------------------
-        // GUARDAR ÚLTIMO RESULTADO
-        // ----------------------------------------------------
-
-        if (caras.length > 0) {
-
-            ultimoResultado =
-                caras;
-
-        }
 
 
     } catch (error) {
 
         console.error(
-            "Error en detección:",
+            "❌ ERROR EN DETECCIÓN:",
             error
         );
 
