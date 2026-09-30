@@ -1,7 +1,7 @@
 console.clear();
 
 console.log("======================================");
-console.log("SCRIPT NUEVO - PRUEBA DEFINITIVA");
+console.log("EL JUEGO DE LOS ROSTROS INVISIBLES");
 console.log("======================================");
 
 
@@ -20,10 +20,10 @@ const overlay =
 // IMÁGENES
 // ============================================================
 
-let grullasImage;
-let libelulaImage;
-let mariposasImage;
-let pezImage;
+let grullasImage = null;
+let libelulaImage = null;
+let mariposasImage = null;
+let pezImage = null;
 
 
 // ============================================================
@@ -34,18 +34,27 @@ let canvas = null;
 
 
 // ============================================================
+// CONTROL DE DETECCIÓN
+// ============================================================
+
+let detectando = false;
+
+let ultimoResultado = [];
+
+let vecesSinCara = 0;
+
+const MAX_SIN_CARA = 3;
+
+
+// ============================================================
 // CREAR IMAGEN
 // ============================================================
 
-function crearImagen(
-    ruta,
-    nombre
-) {
+function crearImagen(ruta, nombre) {
 
     console.log(
-        "CREANDO:",
-        nombre,
-        ruta
+        "Cargando imagen:",
+        nombre
     );
 
 
@@ -53,58 +62,33 @@ function crearImagen(
         document.createElement("img");
 
 
-    img.src =
-        ruta;
+    img.src = ruta;
+
+    img.alt = nombre;
 
 
-    img.alt =
-        nombre;
+    img.style.position = "absolute";
+
+    img.style.display = "none";
+
+    img.style.pointerEvents = "none";
+
+    img.style.userSelect = "none";
+
+    img.style.zIndex = "200";
 
 
-    img.style.position =
-        "absolute";
-
-
-    img.style.zIndex =
-        "200";
-
-
-    img.style.pointerEvents =
-        "none";
-
-
-    img.style.display =
-        "none";
-
-
-    overlay.appendChild(
-        img
-    );
+    overlay.appendChild(img);
 
 
     img.onload = function () {
 
         console.log(
-            "████████████████████████████"
-        );
-
-        console.log(
-            "IMAGEN OK:",
-            nombre
-        );
-
-        console.log(
-            "ANCHO:",
-            img.naturalWidth
-        );
-
-        console.log(
-            "ALTO:",
+            "Imagen cargada:",
+            nombre,
+            img.naturalWidth,
+            "x",
             img.naturalHeight
-        );
-
-        console.log(
-            "████████████████████████████"
         );
 
     };
@@ -113,28 +97,15 @@ function crearImagen(
     img.onerror = function () {
 
         console.error(
-            "!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-        );
-
-        console.error(
-            "ERROR:",
-            nombre
-        );
-
-        console.error(
-            "RUTA:",
+            "ERROR CARGANDO:",
+            nombre,
             ruta
-        );
-
-        console.error(
-            "!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
         );
 
     };
 
 
     return img;
-
 }
 
 
@@ -143,11 +114,6 @@ function crearImagen(
 // ============================================================
 
 function cargarImagenes() {
-
-    console.log(
-        "CARGANDO LAS IMÁGENES"
-    );
-
 
     grullasImage =
         crearImagen(
@@ -188,20 +154,8 @@ function mostrarImagen(
     caja
 ) {
 
-    if (!imagen) {
-
+    if (!imagen || !caja) {
         return;
-
-    }
-
-
-    if (!caja) {
-
-        imagen.style.display =
-            "none";
-
-        return;
-
     }
 
 
@@ -235,20 +189,121 @@ function mostrarImagen(
 
     imagen.style.zIndex =
         "200";
-
 }
 
 
 // ============================================================
-// OCULTAR
+// OCULTAR IMAGEN
 // ============================================================
 
-function ocultar(imagen) {
+function ocultarImagen(imagen) {
 
-    if (imagen) {
+    if (!imagen) {
+        return;
+    }
 
-        imagen.style.display =
-            "none";
+
+    imagen.style.display =
+        "none";
+}
+
+
+// ============================================================
+// ACTUALIZAR IMÁGENES
+// ============================================================
+
+function actualizarImagenes(caras) {
+
+    // --------------------------------------------------------
+    // CARA 1
+    // --------------------------------------------------------
+
+    if (caras[0]) {
+
+        mostrarImagen(
+            grullasImage,
+            caras[0].box
+        );
+
+    }
+
+
+    // --------------------------------------------------------
+    // CARA 2
+    // --------------------------------------------------------
+
+    if (caras[1]) {
+
+        mostrarImagen(
+            libelulaImage,
+            caras[1].box
+        );
+
+    }
+
+
+    // --------------------------------------------------------
+    // CARA 3
+    // --------------------------------------------------------
+
+    if (caras[2]) {
+
+        mostrarImagen(
+            mariposasImage,
+            caras[2].box
+        );
+
+    }
+
+
+    // --------------------------------------------------------
+    // CARA 4
+    // --------------------------------------------------------
+
+    if (caras[3]) {
+
+        mostrarImagen(
+            pezImage,
+            caras[3].box
+        );
+
+    }
+
+
+    // --------------------------------------------------------
+    // OCULTAR SOLO DESPUÉS DE VARIOS FRAMES SIN CARAS
+    // --------------------------------------------------------
+
+    if (caras.length === 0) {
+
+        vecesSinCara++;
+
+    } else {
+
+        vecesSinCara = 0;
+
+    }
+
+
+    if (
+        vecesSinCara >= MAX_SIN_CARA
+    ) {
+
+        ocultarImagen(
+            grullasImage
+        );
+
+        ocultarImagen(
+            libelulaImage
+        );
+
+        ocultarImagen(
+            mariposasImage
+        );
+
+        ocultarImagen(
+            pezImage
+        );
 
     }
 
@@ -290,13 +345,23 @@ async function iniciar() {
         video.load();
 
 
-        await video.play();
+        try {
+
+            await video.play();
+
+        } catch (error) {
+
+            console.warn(
+                "Autoplay bloqueado."
+            );
+
+        }
 
 
     } catch (error) {
 
         console.error(
-            "ERROR:",
+            "ERROR CARGANDO MODELO:",
             error
         );
 
@@ -306,31 +371,45 @@ async function iniciar() {
 
 
 // ============================================================
-// VÍDEO
+// INICIAR VÍDEO
 // ============================================================
 
 function iniciarVideo() {
 
     console.log(
-        "VÍDEO OK:",
+        "VÍDEO REPRODUCIÉNDOSE"
+    );
+
+
+    console.log(
+        "Tamaño:",
         video.videoWidth,
+        "x",
         video.videoHeight
     );
 
 
-    detectar();
+    iniciarDeteccion();
 
 }
 
 
 // ============================================================
-// DETECTAR
+// INICIAR DETECCIÓN
 // ============================================================
 
-async function detectar() {
+function iniciarDeteccion() {
+
+    if (detectando) {
+        return;
+    }
+
+
+    detectando = true;
+
 
     console.log(
-        "INICIANDO DETECCIÓN"
+        "INICIANDO DETECCIÓN ESTABLE"
     );
 
 
@@ -401,141 +480,99 @@ async function detectar() {
     cargarImagenes();
 
 
-    // ========================================================
-    // FRAME
-    // ========================================================
+    // --------------------------------------------------------
+    // PRIMERA DETECCIÓN
+    // --------------------------------------------------------
 
-    async function frame() {
-
-        try {
-
-            const detecciones =
-                await faceapi.detectAllFaces(
-
-                    video,
-
-                    new faceapi.TinyFaceDetectorOptions({
-
-                        inputSize: 128,
-
-                        scoreThreshold: 0.3
-
-                    })
-
-                );
+    detectarUnaVez();
 
 
-            const caras =
-                faceapi.resizeResults(
-                    detecciones,
-                    displaySize
-                );
+    // --------------------------------------------------------
+    // DETECTAR CADA 100 ms
+    // --------------------------------------------------------
+
+    setInterval(
+        detectarUnaVez,
+        100
+    );
+
+}
 
 
-            console.log(
-                "CARAS:",
-                caras.length
-            );
+// ============================================================
+// UNA DETECCIÓN
+// ============================================================
 
+async function detectarUnaVez() {
 
-            // =================================================
-            // CARA 1
-            // =================================================
+    if (
+        video.paused ||
+        video.ended ||
+        video.readyState < 2
+    ) {
 
-            if (caras[0]) {
-
-                mostrarImagen(
-                    grullasImage,
-                    caras[0].box
-                );
-
-            } else {
-
-                ocultar(
-                    grullasImage
-                );
-
-            }
-
-
-            // =================================================
-            // CARA 2
-            // =================================================
-
-            if (caras[1]) {
-
-                mostrarImagen(
-                    libelulaImage,
-                    caras[1].box
-                );
-
-            } else {
-
-                ocultar(
-                    libelulaImage
-                );
-
-            }
-
-
-            // =================================================
-            // CARA 3
-            // =================================================
-
-            if (caras[2]) {
-
-                mostrarImagen(
-                    mariposasImage,
-                    caras[2].box
-                );
-
-            } else {
-
-                ocultar(
-                    mariposasImage
-                );
-
-            }
-
-
-            // =================================================
-            // CARA 4
-            // =================================================
-
-            if (caras[3]) {
-
-                mostrarImagen(
-                    pezImage,
-                    caras[3].box
-                );
-
-            } else {
-
-                ocultar(
-                    pezImage
-                );
-
-            }
-
-
-        } catch (error) {
-
-            console.error(
-                "ERROR DETECTANDO:",
-                error
-            );
-
-        }
-
-
-        requestAnimationFrame(
-            frame
-        );
+        return;
 
     }
 
 
-    frame();
+    try {
+
+        const detecciones =
+            await faceapi.detectAllFaces(
+
+                video,
+
+                new faceapi.TinyFaceDetectorOptions({
+
+                    inputSize: 160,
+
+                    scoreThreshold: 0.4
+
+                })
+
+            );
+
+
+        const caras =
+            faceapi.resizeResults(
+                detecciones,
+                {
+                    width: video.videoWidth,
+                    height: video.videoHeight
+                }
+            );
+
+
+        // ----------------------------------------------------
+        // ACTUALIZAR
+        // ----------------------------------------------------
+
+        actualizarImagenes(
+            caras
+        );
+
+
+        // ----------------------------------------------------
+        // GUARDAR ÚLTIMO RESULTADO
+        // ----------------------------------------------------
+
+        if (caras.length > 0) {
+
+            ultimoResultado =
+                caras;
+
+        }
+
+
+    } catch (error) {
+
+        console.error(
+            "Error en detección:",
+            error
+        );
+
+    }
 
 }
 
