@@ -5,32 +5,7 @@
 <meta charset="UTF-8">
 <title>Juego de los rostros invisibles</title>
 
-<script defer src="face-api.js"></script>
-
-<style>
-
-#contenedor {
-    position: relative;
-    width: 768px;
-    height: 576px;
-}
-
-#video {
-    position: absolute;
-    top:0;
-    left:0;
-}
-
-#canvas {
-    position: absolute;
-    top:0;
-    left:0;
-}
-
-</style>
-
 </head>
-
 
 <body>
 
@@ -41,21 +16,21 @@
         id="video"
         autoplay
         muted
-        playsinline
-        width="768"
-        height="576">
+        playsinline>
     </video>
-
 
     <canvas id="canvas"></canvas>
 
 </div>
 
 
-<script src="script.js"></script>
+<!-- PRIMERO face-api -->
+<script src="./face-api.js"></script>
+
+<!-- DESPUÉS tu código -->
+<script src="./script.js"></script>
 
 
 </body>
 
 </html>
-
