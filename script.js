@@ -1,185 +1,382 @@
-console.log("PRUEBA DE DETECCIÓN FACIAL");
+console.log("INICIANDO EL JUEGO DE LOS ROSTROS INVISIBLES");
+
 
 const video = document.getElementById("video");
-const canvas = document.getElementById("canvas");
 
-
-// ============================================================
-// COMPROBAR FACE-API
-// ============================================================
-
-if (typeof faceapi === "undefined") {
-
-    console.error("face-api.js NO está cargado.");
-
-} else {
-
-    console.log("face-api.js cargado correctamente.");
-
-}
+const overlay = document.getElementById(
+    "overlay-elements"
+);
 
 
 
-// ============================================================
-// INICIO
-// ============================================================
-
-async function iniciar() {
-
-    try {
-
-        console.log("Cargando modelo...");
+let imagesAdded = false;
 
 
-        await faceapi.nets.tinyFaceDetector.loadFromUri("./models");
-
-
-        console.log("MODELO CARGADO.");
-
-
-        video.addEventListener(
-            "playing",
-            iniciarVideo
-        );
-
-
-        video.src="https://4fmasenjo-debug.github.io/El-juego-de-los-rostros-invisibles/video.mp4";
-
-
-        video.load();
-
-
-        await video.play();
-
-
-    } catch(error){
-
-        console.error("ERROR INICIAL:");
-        console.error(error);
-
-    }
-
-}
+let grullasImage = null;
+let libelulaImage = null;
+let mariposasImage = null;
+let pezImage = null;
 
 
 
 // ============================================================
-// VÍDEO LISTO
+// CARGAR MODELO
 // ============================================================
 
-function iniciarVideo(){
 
-    console.log(
-        "VÍDEO REPRODUCIÉNDOSE."
-    );
+Promise.all([
+
+    faceapi.nets.tinyFaceDetector.loadFromUri(
+        "./models"
+    )
+
+])
+
+
+.then(()=>{
 
 
     console.log(
-        "Tamaño:",
-        video.videoWidth,
-        "x",
-        video.videoHeight
+        "MODELOS CARGADOS CORRECTAMENTE."
     );
 
 
-    canvas.width =
-    video.videoWidth;
+    video.play()
+    .then(()=>{
+
+        console.log(
+            "VIDEO REPRODUCIENDOSE."
+        );
+
+    })
+
+    .catch(error=>{
+
+        console.error(
+            "ERROR VIDEO:",
+            error
+        );
+
+    });
 
 
-    canvas.height =
-    video.videoHeight;
+})
+
+.catch(error=>{
 
 
-    detectar();
+    console.error(
+        "ERROR CARGANDO MODELO:",
+        error
+    );
 
-}
+
+});
+
+
 
 
 
 // ============================================================
-// DETECCIÓN CONTINUA
+// DETECCION
 // ============================================================
 
-async function detectar(){
+
+video.addEventListener(
+"play",
+()=>{
 
 
-    console.log(
-        "INICIANDO DETECCIÓN FACIAL."
-    );
-
-
-    const ctx =
-    canvas.getContext("2d");
-
-
-
-    setInterval(async()=>{
-
-
-        const caras =
-        await faceapi.detectAllFaces(
-            video,
-            new faceapi.TinyFaceDetectorOptions({
-
-                inputSize:128,
-
-                scoreThreshold:0.3
-
-            })
-        );
+console.log(
+    "INICIANDO DETECCION FACIAL."
+);
 
 
 
-        ctx.clearRect(
-            0,
-            0,
-            canvas.width,
-            canvas.height
-        );
+const displaySize = {
+
+    width:720,
+    height:560
+
+};
 
 
 
-        caras.forEach(cara=>{
+const canvas = faceapi.createCanvasFromMedia(
+    video
+);
 
 
-            const box =
-            cara.box;
+
+overlay.appendChild(
+    canvas
+);
 
 
-            ctx.strokeStyle="red";
 
-            ctx.lineWidth=3;
-
-
-            ctx.strokeRect(
-
-                box.x,
-                box.y,
-                box.width,
-                box.height
-
-            );
+faceapi.matchDimensions(
+    canvas,
+    displaySize
+);
 
 
-        });
 
+
+
+setInterval(async()=>{
+
+
+const detections = await faceapi.detectAllFaces(
+
+    video,
+
+    new faceapi.TinyFaceDetectorOptions({
+
+        inputSize:128,
+
+        scoreThreshold:0.3
+
+    })
+
+);
+
+
+
+const resizedDetections =
+faceapi.resizeResults(
+
+    detections,
+
+    displaySize
+
+);
+
+
+
+console.log(
+    "CARAS DETECTADAS:",
+    resizedDetections.length
+);
+
+
+
+
+
+// ============================================================
+// CUATRO PERSONAS
+// ============================================================
+
+
+if(resizedDetections.length >= 4){
+
+
+
+    if(!imagesAdded){
 
 
         console.log(
-            "CARAS DETECTADAS:",
-            caras.length
+            "AÑADIENDO IMAGENES."
         );
 
 
-    },200);
+
+        grullasImage =
+        crearImagen(
+            "./grullas.png"
+        );
+
+
+
+        libelulaImage =
+        crearImagen(
+            "./libelula.png"
+        );
+
+
+
+        mariposasImage =
+        crearImagen(
+            "./mariposas.png"
+        );
+
+
+
+        pezImage =
+        crearImagen(
+            "./pez.png"
+        );
+
+
+
+        imagesAdded=true;
+
+
+    }
+
+
+
+
+    colocarImagen(
+
+        grullasImage,
+
+        resizedDetections[0].box
+
+    );
+
+
+
+    colocarImagen(
+
+        libelulaImage,
+
+        resizedDetections[1].box
+
+    );
+
+
+
+    colocarImagen(
+
+        mariposasImage,
+
+        resizedDetections[2].box
+
+    );
+
+
+
+    colocarImagen(
+
+        pezImage,
+
+        resizedDetections[3].box
+
+    );
+
+
+
+}
+
+else{
+
+
+ocultarImagenes();
 
 
 }
 
 
 
+},200);
+
+
+
+});
+
+
+
+
+
+
 // ============================================================
-// ARRANCAR
+// CREAR IMAGEN
 // ============================================================
 
-iniciar();
+
+function crearImagen(src){
+
+
+let img =
+document.createElement("img");
+
+
+
+img.src=src;
+
+
+img.style.position="absolute";
+
+
+img.style.zIndex="10";
+
+
+img.style.display="none";
+
+
+overlay.appendChild(img);
+
+
+
+return img;
+
+
+}
+
+
+
+
+
+
+// ============================================================
+// COLOCAR IMAGEN SOBRE CARA
+// ============================================================
+
+
+function colocarImagen(img,box){
+
+
+img.style.display="block";
+
+
+img.style.left =
+box.x+"px";
+
+
+img.style.top =
+box.y+"px";
+
+
+img.style.width =
+box.width+"px";
+
+
+img.style.height =
+box.height+"px";
+
+
+}
+
+
+
+
+
+
+// ============================================================
+// OCULTAR
+// ============================================================
+
+
+function ocultarImagenes(){
+
+
+if(grullasImage)
+grullasImage.style.display="none";
+
+
+if(libelulaImage)
+libelulaImage.style.display="none";
+
+
+if(mariposasImage)
+mariposasImage.style.display="none";
+
+
+if(pezImage)
+pezImage.style.display="none";
+
+
+imagesAdded=false;
+
+
+}
