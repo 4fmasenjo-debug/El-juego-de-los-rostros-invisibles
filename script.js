@@ -1,32 +1,34 @@
 console.log("INICIANDO EL JUEGO DE LOS ROSTROS INVISIBLES");
 console.log("URL:", window.location.href);
+// ============================================================
+// ELEMENTOS
+// ============================================================
 
 const video = document.getElementById("video");
 const overlay = document.getElementById("overlay-elements");
-
 let grullasImage = null;
 let libelulaImage = null;
 let mariposasImage = null;
 let pezImage = null;
-
 let modelosCargados = false;
 let deteccionIniciada = false;
-
-
 // ============================================================
 // COMPROBAR FACE-API
 // ============================================================
 
 if (typeof faceapi === "undefined") {
+
     console.error("face-api.js no está disponible.");
+
     throw new Error("faceapi no está disponible.");
+
 }
 
 console.log("face-api.js cargado correctamente.");
 
 
 // ============================================================
-// CREAR IMÁGENES
+// CREAR IMAGEN
 // ============================================================
 
 function crearImagen(src) {
@@ -41,11 +43,15 @@ function crearImagen(src) {
     img.style.display = "none";
 
     img.addEventListener("load", () => {
-        console.log("Imagen cargada:", src);
+
+        console.log("Imagen cargada correctamente:", src);
+
     });
 
     img.addEventListener("error", () => {
+
         console.error("No se pudo cargar la imagen:", src);
+
     });
 
     overlay.appendChild(img);
@@ -61,11 +67,15 @@ function crearImagen(src) {
 function cargarImagenes() {
 
     grullasImage = crearImagen("./grullas.png");
+
     libelulaImage = crearImagen("./libelula.png");
+
     mariposasImage = crearImagen("./mariposas.png");
+
     pezImage = crearImagen("./pez.png");
 
     console.log("Imágenes preparadas.");
+
 }
 
 
@@ -87,65 +97,89 @@ async function cargarModelo() {
 
         cargarImagenes();
 
-        iniciarCamara();
+        iniciarVideo();
 
     } catch (error) {
 
-        console.error("Error cargando el modelo:", error);
+        console.error("Error cargando el modelo:");
+
+        console.error(error);
 
     }
+
 }
 
 
 // ============================================================
-// INICIAR CÁMARA
+// INICIAR VÍDEO
 // ============================================================
 
-async function iniciarCamara() {
+function iniciarVideo() {
 
-    try {
+    console.log("Preparando vídeo...");
 
-        const stream = await navigator.mediaDevices.getUserMedia({
-            video: true,
-            audio: false
-        });
+    if (!video) {
 
-        video.srcObject = stream;
+        console.error("No se encontró el elemento video.");
 
-        video.addEventListener("loadedmetadata", () => {
-
-            video.play();
-
-            console.log(
-                "Cámara iniciada:",
-                video.videoWidth,
-                "x",
-                video.videoHeight
-            );
-
-        }, { once: true });
-
-    } catch (error) {
-
-        console.error("No se pudo acceder a la cámara:", error);
+        return;
 
     }
+
+    video.addEventListener("loadedmetadata", () => {
+
+        console.log(
+            "Vídeo cargado:",
+            video.videoWidth,
+            "x",
+            video.videoHeight
+        );
+
+        video.play()
+            .then(() => {
+
+                console.log("Vídeo reproduciéndose.");
+
+            })
+            .catch(error => {
+
+                console.error("No se pudo reproducir el vídeo:");
+
+                console.error(error);
+
+            });
+
+    }, { once: true });
+
+    video.addEventListener("error", () => {
+
+        console.error("No se pudo cargar el vídeo.");
+
+    });
+
 }
 
 
 // ============================================================
-// DETECCIÓN
+// CUANDO EL VÍDEO EMPIEZA A REPRODUCIRSE
 // ============================================================
 
 video.addEventListener("play", () => {
 
-    if (deteccionIniciada) {
-        return;
-    }
+    console.log("El vídeo está reproduciéndose.");
 
     if (!modelosCargados) {
+
         console.error("El modelo todavía no está cargado.");
+
         return;
+
+    }
+
+    if (deteccionIniciada) {
+
+        return;
+
     }
 
     deteccionIniciada = true;
@@ -158,64 +192,119 @@ video.addEventListener("play", () => {
 
 
 // ============================================================
-// DETECTAR ROSTROS
+// DETECCIÓN FACIAL
 // ============================================================
 
 async function detectarRostros() {
-
-    const displaySize = {
-        width: video.clientWidth,
-        height: video.clientHeight
-    };
 
     while (true) {
 
         try {
 
             if (video.readyState < 2) {
+
                 await esperar(100);
+
                 continue;
+
             }
 
+
+            // ------------------------------------------------
+            // TAMAÑO REAL DEL VÍDEO EN PANTALLA
+            // ------------------------------------------------
+
+            const displaySize = {
+
+                width: video.clientWidth,
+
+                height: video.clientHeight
+
+            };
+
+
+            // ------------------------------------------------
+            // DETECTAR ROSTROS
+            // ------------------------------------------------
+
             const detections = await faceapi.detectAllFaces(
+
                 video,
+
                 new faceapi.TinyFaceDetectorOptions({
+
                     inputSize: 320,
+
                     scoreThreshold: 0.5
+
                 })
+
             );
 
+
+            // ------------------------------------------------
+            // ADAPTAR COORDENADAS AL TAMAÑO DEL VÍDEO
+            // ------------------------------------------------
+
             const resizedDetections = faceapi.resizeResults(
+
                 detections,
+
                 displaySize
+
             );
+
 
             console.log(
                 "Rostros detectados:",
                 resizedDetections.length
             );
 
+
+            // ------------------------------------------------
+            // CUATRO O MÁS ROSTROS
+            // ------------------------------------------------
+
             if (resizedDetections.length >= 4) {
 
+                console.log("Hay cuatro o más rostros.");
+
+
                 mostrarImagen(
+
                     grullasImage,
+
                     resizedDetections[0].box
+
                 );
 
+
                 mostrarImagen(
+
                     libelulaImage,
+
                     resizedDetections[1].box
+
                 );
 
+
                 mostrarImagen(
+
                     mariposasImage,
+
                     resizedDetections[2].box
+
                 );
 
+
                 mostrarImagen(
+
                     pezImage,
+
                     resizedDetections[3].box
+
                 );
+
 
             } else {
 
@@ -225,12 +314,21 @@ async function detectarRostros() {
 
         } catch (error) {
 
-            console.error("Error durante la detección:", error);
+            console.error("Error durante la detección:");
+
+            console.error(error);
 
         }
 
+
+        // ------------------------------------------------
+        // ESPERAR ANTES DE LA SIGUIENTE DETECCIÓN
+        // ------------------------------------------------
+
         await esperar(100);
+
     }
+
 }
 
 
@@ -241,16 +339,21 @@ async function detectarRostros() {
 function mostrarImagen(img, box) {
 
     if (!img) {
+
         return;
+
     }
 
     img.style.display = "block";
 
     img.style.left = `${box.x}px`;
+
     img.style.top = `${box.y}px`;
 
     img.style.width = `${box.width}px`;
+
     img.style.height = `${box.height}px`;
+
 }
 
 
@@ -261,20 +364,29 @@ function mostrarImagen(img, box) {
 function ocultarImagenes() {
 
     if (grullasImage) {
+
         grullasImage.style.display = "none";
+
     }
 
     if (libelulaImage) {
+
         libelulaImage.style.display = "none";
+
     }
 
     if (mariposasImage) {
+
         mariposasImage.style.display = "none";
+
     }
 
     if (pezImage) {
+
         pezImage.style.display = "none";
+
     }
+
 }
 
 
@@ -285,14 +397,16 @@ function ocultarImagenes() {
 function esperar(ms) {
 
     return new Promise(resolve => {
+
         setTimeout(resolve, ms);
+
     });
 
 }
 
 
 // ============================================================
-// INICIO
+// INICIAR
 // ============================================================
 
 cargarModelo();
