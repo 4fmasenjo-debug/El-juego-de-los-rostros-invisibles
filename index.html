@@ -1,24 +1,19 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>El juego de los rostros invisibles</title>
-
     <style>
         #overlay-elements {
             position: relative;
             display: inline-block;
         }
-
         #video {
             display: block;
             width: 640px;
             height: auto;
         }
-
         #overlay-elements img {
             position: absolute;
             pointer-events: none;
@@ -26,23 +21,13 @@
         }
     </style>
 </head>
-
 <body>
-
     <div id="overlay-elements">
-
         <video id="video" muted loop playsinline preload="auto">
             <source src="./video.mp4" type="video/mp4">
         </video>
-
     </div>
-
     <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
-
     <script src="./script.js"></script>
-
 </body>
-
 </html>
-
-
