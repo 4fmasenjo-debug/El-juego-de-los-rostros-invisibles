@@ -60,13 +60,13 @@ if (
 ) {
 
     console.error(
-        "❌ face-api.js NO está cargado."
+        "face-api.js NO está cargado."
     );
 
 } else {
 
     console.log(
-        "✅ face-api.js cargado correctamente."
+        "face-api.js cargado correctamente."
     );
 
 }
@@ -143,7 +143,7 @@ function crearImagen(
     img.onload = function () {
 
         console.log(
-            "✅ IMAGEN CARGADA:",
+            "IMAGEN CARGADA:",
             nombre
         );
 
@@ -160,7 +160,7 @@ function crearImagen(
     img.onerror = function () {
 
         console.error(
-            "❌ ERROR CARGANDO:",
+            "ERROR CARGANDO:",
             nombre
         );
 
@@ -500,7 +500,7 @@ async function iniciar() {
 
 
         console.log(
-            "✅ MODELO CARGADO CORRECTAMENTE"
+            "MODELO CARGADO CORRECTAMENTE"
         );
 
 
@@ -788,7 +788,7 @@ async function detectar() {
     } catch (error) {
 
         console.error(
-            "❌ ERROR EN DETECCIÓN:",
+            "ERROR EN DETECCIÓN:",
             error
         );
 
