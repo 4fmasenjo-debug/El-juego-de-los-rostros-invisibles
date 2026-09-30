@@ -1,14 +1,34 @@
-console.log("INICIANDO DETECCIÓN FACIAL");
+console.log(
+    "INICIANDO EL JUEGO DE LOS ROSTROS INVISIBLES"
+);
 
-const video = document.getElementById("video");
-const overlay = document.getElementById("overlay-elements");
 
-let grullasImage = null;
-let libelulaImage = null;
-let mariposasImage = null;
-let pezImage = null;
+// ============================================================
+// ELEMENTOS HTML
+// ============================================================
+
+const video =
+    document.getElementById("video");
+
+
+const overlay =
+    document.getElementById("overlay-elements");
+
+
+// ============================================================
+// VARIABLES
+// ============================================================
 
 let canvas = null;
+
+let grullasImage = null;
+
+let libelulaImage = null;
+
+let mariposasImage = null;
+
+let pezImage = null;
+
 let deteccionIniciada = false;
 
 
@@ -18,44 +38,99 @@ let deteccionIniciada = false;
 
 if (typeof faceapi === "undefined") {
 
-    console.error("face-api.js NO está cargado.");
+    console.error(
+        "ERROR: face-api.js NO está cargado."
+    );
 
 } else {
 
-    console.log("face-api.js cargado correctamente.");
+    console.log(
+        "face-api.js cargado correctamente."
+    );
 
 }
 
 
 // ============================================================
-// INICIAR
+// COMPROBAR ELEMENTOS
+// ============================================================
+
+if (!video) {
+
+    console.error(
+        "ERROR: no se encuentra #video."
+    );
+
+}
+
+
+if (!overlay) {
+
+    console.error(
+        "ERROR: no se encuentra #overlay-elements."
+    );
+
+}
+
+
+// ============================================================
+// CARGAR MODELO
 // ============================================================
 
 async function iniciar() {
 
     try {
 
-        console.log("Cargando modelo...");
+        console.log(
+            "Cargando modelo..."
+        );
+
 
         await faceapi.nets.tinyFaceDetector.loadFromUri(
             "./models"
         );
 
-        console.log("MODELO CARGADO.");
+
+        console.log(
+            "MODELO CARGADO."
+        );
+
+
+        // Esperamos a que el vídeo empiece
 
         video.addEventListener(
             "playing",
             iniciarVideo,
-            { once: true }
+            {
+                once: true
+            }
         );
+
 
         video.load();
 
-        await video.play();
+
+        try {
+
+            await video.play();
+
+        } catch (error) {
+
+            console.warn(
+                "El navegador bloqueó la reproducción automática."
+            );
+
+            console.warn(error);
+
+        }
+
 
     } catch (error) {
 
-        console.error("ERROR INICIAL:");
+        console.error(
+            "ERROR AL INICIAR:"
+        );
+
         console.error(error);
 
     }
@@ -64,12 +139,15 @@ async function iniciar() {
 
 
 // ============================================================
-// VÍDEO
+// VÍDEO REPRODUCIÉNDOSE
 // ============================================================
 
 function iniciarVideo() {
 
-    console.log("VÍDEO REPRODUCIÉNDOSE.");
+    console.log(
+        "VÍDEO REPRODUCIÉNDOSE."
+    );
+
 
     console.log(
         "Tamaño:",
@@ -77,6 +155,20 @@ function iniciarVideo() {
         "x",
         video.videoHeight
     );
+
+
+    if (
+        video.videoWidth === 0 ||
+        video.videoHeight === 0
+    ) {
+
+        console.error(
+            "El vídeo no tiene dimensiones válidas."
+        );
+
+        return;
+
+    }
 
 
     if (deteccionIniciada) {
@@ -95,7 +187,7 @@ function iniciarVideo() {
 
 
 // ============================================================
-// CREAR IMÁGENES
+// CREAR IMAGEN
 // ============================================================
 
 function crearImagen(src) {
@@ -103,17 +195,54 @@ function crearImagen(src) {
     const img =
         document.createElement("img");
 
+
     img.src = src;
 
-    img.style.position = "absolute";
 
-    img.style.display = "none";
+    img.style.position =
+        "absolute";
 
-    img.style.zIndex = "10";
 
-    img.style.pointerEvents = "none";
+    img.style.display =
+        "none";
+
+
+    img.style.pointerEvents =
+        "none";
+
+
+    img.style.zIndex =
+        "20";
+
 
     overlay.appendChild(img);
+
+
+    img.addEventListener(
+        "load",
+        () => {
+
+            console.log(
+                "Imagen cargada:",
+                src
+            );
+
+        }
+    );
+
+
+    img.addEventListener(
+        "error",
+        () => {
+
+            console.error(
+                "ERROR CARGANDO IMAGEN:",
+                src
+            );
+
+        }
+    );
+
 
     return img;
 
@@ -121,90 +250,124 @@ function crearImagen(src) {
 
 
 // ============================================================
-// CREAR FILTROS
+// CARGAR LAS IMÁGENES
 // ============================================================
 
-function crearImagenes() {
+function cargarImagenes() {
 
-    if (grullasImage) {
+    console.log(
+        "Cargando imágenes..."
+    );
 
-        return;
-
-    }
-
-    console.log("CARGANDO IMÁGENES.");
 
     grullasImage =
-        crearImagen("./grullas.png");
+        crearImagen(
+            "./grullas.png"
+        );
+
 
     libelulaImage =
-        crearImagen("./libelula.png");
+        crearImagen(
+            "./libelula.png"
+        );
+
 
     mariposasImage =
-        crearImagen("./mariposas.png");
+        crearImagen(
+            "./mariposas.png"
+        );
+
 
     pezImage =
-        crearImagen("./pez.png");
+        crearImagen(
+            "./pez.png"
+        );
 
 }
 
 
 // ============================================================
-// COLOCAR IMAGEN
+// COLOCAR IMAGEN SOBRE UNA CARA
 // ============================================================
 
-function colocarImagen(img, box) {
+function colocarImagen(
+    imagen,
+    caja
+) {
 
-    if (!img || !box) {
+    if (!imagen) {
 
         return;
 
     }
 
-    img.style.display = "block";
 
-    img.style.left =
-        box.x + "px";
+    if (!caja) {
 
-    img.style.top =
-        box.y + "px";
+        imagen.style.display =
+            "none";
 
-    img.style.width =
-        box.width + "px";
+        return;
 
-    img.style.height =
-        box.height + "px";
+    }
+
+
+    imagen.style.display =
+        "block";
+
+
+    imagen.style.left =
+        caja.x + "px";
+
+
+    imagen.style.top =
+        caja.y + "px";
+
+
+    imagen.style.width =
+        caja.width + "px";
+
+
+    imagen.style.height =
+        caja.height + "px";
 
 }
 
 
 // ============================================================
-// OCULTAR IMÁGENES
+// OCULTAR TODAS LAS IMÁGENES
 // ============================================================
 
 function ocultarImagenes() {
 
     if (grullasImage) {
 
-        grullasImage.style.display = "none";
+        grullasImage.style.display =
+            "none";
 
     }
+
 
     if (libelulaImage) {
 
-        libelulaImage.style.display = "none";
+        libelulaImage.style.display =
+            "none";
 
     }
+
 
     if (mariposasImage) {
 
-        mariposasImage.style.display = "none";
+        mariposasImage.style.display =
+            "none";
 
     }
 
+
     if (pezImage) {
 
-        pezImage.style.display = "none";
+        pezImage.style.display =
+            "none";
 
     }
 
@@ -212,7 +375,7 @@ function ocultarImagenes() {
 
 
 // ============================================================
-// DETECCIÓN
+// DETECCIÓN FACIAL
 // ============================================================
 
 async function detectar() {
@@ -222,29 +385,60 @@ async function detectar() {
     );
 
 
-    // Crear canvas AQUÍ.
-    // No usamos ningún canvas del HTML.
+    // ========================================================
+    // CREAR CANVAS
+    // ========================================================
 
     canvas =
-        faceapi.createCanvasFromMedia(video);
+        faceapi.createCanvasFromMedia(
+            video
+        );
 
 
-    canvas.style.position = "absolute";
+    canvas.style.position =
+        "absolute";
 
-    canvas.style.left = "0";
 
-    canvas.style.top = "0";
+    canvas.style.left =
+        "0px";
 
-    canvas.style.zIndex = "2";
 
-    overlay.appendChild(canvas);
+    canvas.style.top =
+        "0px";
 
+
+    canvas.style.width =
+        "768px";
+
+
+    canvas.style.height =
+        "576px";
+
+
+    canvas.style.zIndex =
+        "10";
+
+
+    canvas.style.pointerEvents =
+        "none";
+
+
+    overlay.appendChild(
+        canvas
+    );
+
+
+    // ========================================================
+    // DIMENSIONES
+    // ========================================================
 
     const displaySize = {
 
-        width: video.videoWidth,
+        width:
+            video.videoWidth,
 
-        height: video.videoHeight
+        height:
+            video.videoHeight
 
     };
 
@@ -255,11 +449,15 @@ async function detectar() {
     );
 
 
-    crearImagenes();
+    // ========================================================
+    // CARGAR IMÁGENES
+    // ========================================================
+
+    cargarImagenes();
 
 
     // ========================================================
-    // BUCLE
+    // BUCLE DE DETECCIÓN
     // ========================================================
 
     async function detectarFrame() {
@@ -282,7 +480,11 @@ async function detectar() {
         try {
 
 
-            const detections =
+            // =================================================
+            // DETECTAR CARAS
+            // =================================================
+
+            const detecciones =
                 await faceapi.detectAllFaces(
 
                     video,
@@ -298,10 +500,14 @@ async function detectar() {
                 );
 
 
-            const resizedDetections =
+            // =================================================
+            // CAMBIAR COORDENADAS
+            // =================================================
+
+            const caras =
                 faceapi.resizeResults(
 
-                    detections,
+                    detecciones,
 
                     displaySize
 
@@ -310,40 +516,73 @@ async function detectar() {
 
             console.log(
                 "CARAS DETECTADAS:",
-                resizedDetections.length
+                caras.length
             );
 
 
             // =================================================
-            // NECESITAMOS 4 CARAS
+            // DIBUJAR RECTÁNGULOS DE PRUEBA
+            // =================================================
+
+            const ctx =
+                canvas.getContext("2d");
+
+
+            ctx.clearRect(
+                0,
+                0,
+                canvas.width,
+                canvas.height
+            );
+
+
+            // =================================================
+            // CUATRO PERSONAS
             // =================================================
 
             if (
-                resizedDetections.length >= 4
+                caras.length >= 4
             ) {
 
 
+                console.log(
+                    "4 O MÁS CARAS DETECTADAS."
+                );
+
+
                 colocarImagen(
+
                     grullasImage,
-                    resizedDetections[0].box
+
+                    caras[0].box
+
                 );
 
 
                 colocarImagen(
+
                     libelulaImage,
-                    resizedDetections[1].box
+
+                    caras[1].box
+
                 );
 
 
                 colocarImagen(
+
                     mariposasImage,
-                    resizedDetections[2].box
+
+                    caras[2].box
+
                 );
 
 
                 colocarImagen(
+
                     pezImage,
-                    resizedDetections[3].box
+
+                    caras[3].box
+
                 );
 
 
@@ -358,10 +597,14 @@ async function detectar() {
 
         } catch (error) {
 
+
             console.error(
-                "ERROR EN DETECCIÓN:",
-                error
+                "ERROR DURANTE LA DETECCIÓN:"
             );
+
+
+            console.error(error);
+
 
         }
 
@@ -373,13 +616,17 @@ async function detectar() {
     }
 
 
+    // ========================================================
+    // ARRANCAR BUCLE
+    // ========================================================
+
     detectarFrame();
 
 }
 
 
 // ============================================================
-// ARRANCAR
+// INICIAR TODO
 // ============================================================
 
 iniciar();
