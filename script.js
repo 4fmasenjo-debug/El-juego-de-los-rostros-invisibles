@@ -1,4 +1,3 @@
-```js
 console.log("INICIANDO EL JUEGO DE LOS ROSTROS INVISIBLES");
 
 const video = document.getElementById("video");
