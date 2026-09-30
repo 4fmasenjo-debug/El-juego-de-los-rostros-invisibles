@@ -2,91 +2,60 @@
 <html lang="es">
 
 <head>
+<meta charset="UTF-8">
+<title>Juego de los rostros invisibles</title>
 
-    <meta charset="UTF-8">
+<script defer src="face-api.js"></script>
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+<style>
 
-    <title>El juego de los rostros invisibles</title>
+#contenedor {
+    position: relative;
+    width: 768px;
+    height: 576px;
+}
 
-    <link rel="icon" href="data:,">
+#video {
+    position: absolute;
+    top:0;
+    left:0;
+}
 
-    <style>
+#canvas {
+    position: absolute;
+    top:0;
+    left:0;
+}
 
-        #overlay-elements {
-
-            position: relative;
-
-            display: inline-block;
-
-            line-height: 0;
-
-        }
-
-
-        #video {
-
-            display: block;
-
-            width: 640px;
-
-            height: auto;
-
-        }
-
-
-        #overlay-elements img {
-
-            position: absolute;
-
-            z-index: 10;
-
-            pointer-events: none;
-
-            display: none;
-
-        }
-
-    </style>
+</style>
 
 </head>
 
 
 <body>
 
-    <div id="overlay-elements">
 
-        <video
-            id="video"
-            muted
-            loop
-            playsinline
-            preload="auto"
-        >
+<div id="contenedor">
 
-            <source
-                src="./video.mp4"
-                type="video/mp4"
-            >
-
-        </video>
-
-    </div>
+    <video 
+        id="video"
+        autoplay
+        muted
+        playsinline
+        width="768"
+        height="576">
+    </video>
 
 
-    <script
-        src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js">
-    </script>
+    <canvas id="canvas"></canvas>
+
+</div>
 
 
-    <script src="./script.js"></script>
+<script src="script.js"></script>
 
 
 </body>
 
 </html>
-
 
